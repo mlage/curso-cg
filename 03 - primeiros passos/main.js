@@ -21,14 +21,12 @@ class Scene {
   init(gl) {
     this.createShaderProgram(gl);
     this.createVAO(gl);
-
   }
 
   createShaderProgram(gl) {
     this.vertShd = Shader.createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
     this.fragShd = Shader.createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);
     this.program = Shader.createProgram(gl, this.vertShd, this.fragShd);
-
   }
 
   createVAO(gl) {
@@ -55,11 +53,8 @@ class Scene {
 
   draw(gl) {
     gl.useProgram(this.program);
-
-    // bind vertex and color data
     gl.bindVertexArray(this.vaoLoc);
 
-    // draw VAO
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 }
