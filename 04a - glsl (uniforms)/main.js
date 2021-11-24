@@ -14,6 +14,8 @@ class Scene {
     this.program = null;
 
     this.vaoLoc = -1;
+    this.uniformLoc = -1;
+    this.uniformLoc2 = -1;
 
     this.init(gl);
   }
@@ -21,12 +23,23 @@ class Scene {
   init(gl) {
     this.createShaderProgram(gl);
     this.createVAO(gl);
+    this.createUniforms(gl);
   }
 
   createShaderProgram(gl) {
     this.vertShd = Shader.createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
     this.fragShd = Shader.createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);
     this.program = Shader.createProgram(gl, this.vertShd, this.fragShd);
+
+    gl.useProgram(this.program);
+  }
+
+  createUniforms(gl) {
+    this.uniformLoc = gl.getUniformLocation(this.program, "u_dp");
+    gl.uniform1f(this.uniformLoc, 0.5);  
+    
+    this.uniformLoc2 = gl.getUniformLocation(this.program, "u_s");
+    gl.uniform1f(this.uniformLoc2, 0.5);  
   }
 
   createVAO(gl) {
@@ -51,9 +64,13 @@ class Scene {
     this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
   }
 
-  draw(gl) {
+  draw(gl, translate) {
     gl.useProgram(this.program);
+
     gl.bindVertexArray(this.vaoLoc);
+
+    gl.uniform1f(this.uniformLoc, translate);  
+    gl.uniform1f(this.uniformLoc2, 0.5);  
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
@@ -65,6 +82,8 @@ class Main {
 
     this.gl = canvas.getContext("webgl2");
     this.scene = new Scene(this.gl);
+
+    this.translate = 0;
   }
 
   draw() {
@@ -76,8 +95,9 @@ class Main {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
-
-    this.scene.draw(this.gl);
+ 
+    this.translate += (this.translate < 0.5) ? 0.001 : -0.5;
+    this.scene.draw(this.gl, this.translate);
 
     requestAnimationFrame(this.draw.bind(this));
   }
@@ -88,3 +108,5 @@ window.onload = () => {
   const app = new Main();
   app.draw();
 }
+
+
