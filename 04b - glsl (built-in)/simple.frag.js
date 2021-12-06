@@ -8,7 +8,7 @@ out vec4 minhaColor;
 void main()
 {
   float dist  = length(gl_PointCoord.xy - vec2(.5, .5));
-  float alpha = (dist < 0.5)?1.0:0.0;
+  float alpha = (dist < 0.5) ? 1.0 : 0.0;
 
   minhaColor = vColor * alpha;
 }`
