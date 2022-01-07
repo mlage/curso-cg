@@ -200,6 +200,9 @@ class Scene {
     gl.useProgram(this.program);
     gl.bindVertexArray(this.vaoLoc);
 
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+
     this.modelMatrix();
     this.viewMatrix();
     this.projectionMatrix("ortho");
@@ -209,6 +212,8 @@ class Scene {
     gl.uniformMatrix4fv(this.projectionLoc, false, this.proj);
 
     gl.drawArrays(gl.TRIANGLES, 0, this.coords.length / 4);
+ 
+    gl.disable(gl.CULL_FACE);
   }
 }
 
@@ -233,14 +238,9 @@ class Main {
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height); 
  
-    this.gl.enable(this.gl.CULL_FACE);
-    this.gl.cullFace(this.gl.BACK);
-
     this.scene.draw(this.gl);
-
-    this.gl.disable(this.gl.CULL_FACE);
 
     requestAnimationFrame(this.draw.bind(this));
   }
@@ -251,5 +251,3 @@ window.onload = () => {
   const app = new Main();
   app.draw();
 }
-
-
