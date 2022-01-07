@@ -1,6 +1,6 @@
 
-import vertShaderSrc from './simple.vert.js';
-import fragShaderSrc from './simple.frag.js';
+import vertShaderSrc from './phong.vert.js';
+import fragShaderSrc from './phong.frag.js';
 
 import Shader from './shader.js';
 
@@ -8,21 +8,22 @@ class Scene {
   constructor(gl, width, height) {
     this.coords = [];
     this.colors = [];
+    this.normls = [];
 
     // model matrix
     this.angle = 0;
     this.model = mat4.create();
 
     // view matrix
-    this.eye = vec3.fromValues(0.0, 1.0, 0.0);
+    this.eye = vec3.fromValues(2.0, 2.0, 2.0);
     this.at  = vec3.fromValues(0.0, 0.0, 0.0);
-    this.up  = vec3.fromValues(0.0, 0.0, 1.0);
+    this.up  = vec3.fromValues(0.0, 1.0, 0.0);
     this.view = mat4.create();
 
     // projection matrix
     this.frustum = {
-        left: -5, right: 5, bottom: -5, top: 5, 
-        near: -1, far: 1,
+        left: -5 * width / height, right: 5 * width / height, bottom: -5, top: 5, 
+        near: -5, far: 5,
         fovy: Math.PI / 3, aspect: width / height
     }
     this.proj = mat4.create();
@@ -32,7 +33,8 @@ class Scene {
     this.program = null;
 
     this.vaoLoc = -1;
-    this.uniformLoc = -1;
+    this.modelviewLoc = -1;
+    this.projectionLoc = -1;
 
     this.init(gl);
   }
@@ -52,7 +54,9 @@ class Scene {
   }
 
   createUniforms(gl) {
-    this.uniformLoc = gl.getUniformLocation(this.program, "u_mat");
+    this.modelLoc = gl.getUniformLocation(this.program, "u_model");
+    this.viewLoc = gl.getUniformLocation(this.program, "u_view");
+    this.projectionLoc = gl.getUniformLocation(this.program, "u_projection");
   }
 
   createCube() {
@@ -68,32 +72,41 @@ class Scene {
     ];
 
     const color = [
-      [0.0,0.0,1.0,1.0], // v0
-      [0.0,0.0,1.0,1.0], // v1
-      [0.0,0.0,1.0,1.0], // v2
-      [0.0,0.0,1.0,1.0], // v3
+      [0.0,1.0,0.0,1.0], // v0
+      [0.0,1.0,0.0,1.0], // v1
+      [0.0,1.0,0.0,1.0], // v2
+      [0.0,1.0,0.0,1.0], // v3
       [0.0,1.0,0.0,1.0], // v4
       [0.0,1.0,0.0,1.0], // v5
       [0.0,1.0,0.0,1.0], // v6
       [0.0,1.0,0.0,1.0]  // v7
     ];
 
-    const vertsVBO = [
-      ...verts[0], ...verts[1], ...verts[3],
-      ...verts[1], ...verts[2], ...verts[3],
-      ...verts[4], ...verts[5], ...verts[7],
-      ...verts[5], ...verts[6], ...verts[7],
-      ...verts[4], ...verts[7], ...verts[3],
-      ...verts[0], ...verts[3], ...verts[7],
-      ...verts[7], ...verts[6], ...verts[0],
-      ...verts[0], ...verts[6], ...verts[1],
-      ...verts[6], ...verts[5], ...verts[1],
-      ...verts[1], ...verts[5], ...verts[2],
-      ...verts[2], ...verts[5], ...verts[4],
-      ...verts[2], ...verts[4], ...verts[3],
+    const normls = [
+      [ 1.0, 0.0, 0.0, 0.0], // n0
+      [-1.0, 0.0, 0.0, 0.0], // n1
+      [ 0.0, 1.0, 0.0, 0.0], // n2
+      [ 0.0,-1.0, 0.0, 0.0], // n3
+      [ 0.0, 0.0, 1.0, 0.0], // n4
+      [ 0.0, 0.0,-1.0, 0.0]  // n5
     ];
 
-    const colorVBO =  [
+    const vertsVBO = [
+      ...verts[0], ...verts[1], ...verts[3], // t1
+      ...verts[1], ...verts[2], ...verts[3], // t2
+      ...verts[4], ...verts[5], ...verts[7], // t3
+      ...verts[5], ...verts[6], ...verts[7], // t4
+      ...verts[4], ...verts[7], ...verts[3], // t5
+      ...verts[0], ...verts[3], ...verts[7], // t6
+      ...verts[7], ...verts[6], ...verts[0], // t7
+      ...verts[0], ...verts[6], ...verts[1], // t8
+      ...verts[6], ...verts[5], ...verts[1], // t9
+      ...verts[1], ...verts[5], ...verts[2], // t10
+      ...verts[2], ...verts[5], ...verts[4], // t11
+      ...verts[2], ...verts[4], ...verts[3], // t12
+    ];
+
+    const colorVBO = [
       ...color[0], ...color[1], ...color[3],
       ...color[1], ...color[2], ...color[3],
       ...color[4], ...color[5], ...color[7],
@@ -108,15 +121,32 @@ class Scene {
       ...color[2], ...color[4], ...color[3],
     ];
 
-    return [vertsVBO, colorVBO];
+    const normlsVBO = [
+      ...normls[3], ...normls[3], ...normls[3], // t1
+      ...normls[3], ...normls[3], ...normls[3], // t2
+      ...normls[2], ...normls[2], ...normls[2], // t3
+      ...normls[2], ...normls[2], ...normls[2], // t4
+      ...normls[1], ...normls[1], ...normls[1], // t5 ok
+      ...normls[1], ...normls[1], ...normls[1], // t6 ok
+      ...normls[5], ...normls[5], ...normls[5], // t7 ok
+      ...normls[5], ...normls[5], ...normls[5], // t8 ok
+      ...normls[0], ...normls[0], ...normls[0], // t9  ok
+      ...normls[0], ...normls[0], ...normls[0], // t10 ok
+      ...normls[4], ...normls[4], ...normls[4], // t11 ok
+      ...normls[4], ...normls[4], ...normls[4], // t12 ok
+    ];
+
+    return [vertsVBO, colorVBO, normlsVBO];
   }
 
   modelMatrix() {
-    this.angle += 0.001;
+    this.angle += 0.01;
     mat4.identity( this.model );
 
     mat4.rotateY(this.model, this.model, this.angle);
     // this.mat * [sin(this.angle) -cos(this.angle) 0 0, cor(this.angle) sin(this.angle) 0 0, 0 0 1 0, 0 0 0 1]
+
+    mat4.scale(this.model, this.model, [2.5, 2.5, 2.5]);
 
     mat4.translate(this.model, this.model, [-0.5, -0.5, -0.5]);
     // this.mat * [1 0 0 -0.5, 0 1 0 -0.5, 0 0 1 -0.5, 0 0 0 1]
@@ -152,6 +182,7 @@ class Scene {
 
     this.coords = model[0];
     this.colors = model[1];
+    this.normls = model[2];
 
     var coordsAttributeLocation = gl.getAttribLocation(this.program, "position");
     const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
@@ -159,7 +190,10 @@ class Scene {
     var colorsAttributeLocation = gl.getAttribLocation(this.program, "color");
     const colorsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.colors));
 
-    this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
+    var normlsAttributeLocation = gl.getAttribLocation(this.program, "normal");
+    const normlsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.normls));
+
+    this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer, normlsAttributeLocation, normlsBuffer);
   }
 
   draw(gl) {
@@ -168,14 +202,11 @@ class Scene {
 
     this.modelMatrix();
     this.viewMatrix();
-    this.projectionMatrix();
+    this.projectionMatrix("ortho");
 
-    const modelView = mat4.create();
-    mat4.mul(modelView, this.view, this.model);
-    const modelViewProj = mat4.create();
-    mat4.mul(modelViewProj, this.proj, modelView);
-
-    gl.uniformMatrix4fv(this.uniformLoc, false, modelViewProj);
+    gl.uniformMatrix4fv(this.modelLoc, false, this.model);
+    gl.uniformMatrix4fv(this.viewLoc, false, this.view);
+    gl.uniformMatrix4fv(this.projectionLoc, false, this.proj);
 
     gl.drawArrays(gl.TRIANGLES, 0, this.coords.length / 4);
   }
@@ -204,7 +235,12 @@ class Main {
 
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
  
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.cullFace(this.gl.BACK);
+
     this.scene.draw(this.gl);
+
+    this.gl.disable(this.gl.CULL_FACE);
 
     requestAnimationFrame(this.draw.bind(this));
   }
