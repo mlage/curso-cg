@@ -1,4 +1,4 @@
-## Curso de Computação Gráfica (IC-UFF, 2021.2)
+## Curso de Computação Gráfica
 
 Códigos utilizados no curso de Computação Gráfica oferecido pelo prof. Marcos Lage para o curso de Ciência da Computação do Instituto de Computação da UFF.
 
