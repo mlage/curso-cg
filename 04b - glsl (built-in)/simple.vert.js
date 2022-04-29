@@ -13,6 +13,8 @@ out vec4 vColor;
 void main()
 {
     gl_Position.xy = position.xy * u_s + vec2(u_dp);
+    gl_Position.zw = vec2(0.0, 1.0);
+
     gl_PointSize = 50.0f;
 
     vColor = color;

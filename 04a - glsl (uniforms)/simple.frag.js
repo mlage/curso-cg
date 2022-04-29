@@ -9,7 +9,7 @@ uniform vec4 u_amb;
 
 void main()
 {
-  minhaColor = vColor + u_amb;
+  minhaColor = vColor;
 }`
 
 

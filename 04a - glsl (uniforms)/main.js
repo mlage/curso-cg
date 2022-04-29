@@ -26,7 +26,6 @@ class Scene {
   }
 
   createShaderProgram(gl) {
-    console.log(gl)
     this.vertShd = Shader.createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
     this.fragShd = Shader.createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);
     this.program = Shader.createProgram(gl, this.vertShd, this.fragShd);
@@ -42,7 +41,7 @@ class Scene {
     gl.uniform1f(this.uniformSLoc, 0.5);
 
     this.uniformAmbLoc = gl.getUniformLocation(this.program, "u_amb");
-    gl.uniform4f(this.uniformAmbLoc, [0, 0, 1, 1]);
+    gl.uniform4fv(this.uniformAmbLoc, [0, 0, 1, 1]);
   }
 
   createVAO(gl) {
@@ -73,7 +72,7 @@ class Scene {
 
     gl.uniform1f(this.uniformDpLoc, translate);
     gl.uniform1f(this.uniformSLoc, 0.5);
-    gl.uniform4f(this.uniformAmbLoc, [0, 0, 1, 1]);
+    gl.uniform4fv(this.uniformAmbLoc, [0, 0, 1, 1]);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
