@@ -10,14 +10,19 @@ class Scene {
     this.colors = [];
 
     this.angle = 0;
-    this.mat = mat4.create();
+    this.model = mat4.create();
+
+    this.eye = vec3.fromValues(0.1, 0.1, 0.1);
+    this.at  = vec3.fromValues(0.0, 0.0, 0.0);
+    this.up  = vec3.fromValues(.0, 1.0, 0.0);
+    this.view = mat4.create();
 
     this.vertShd = null;
     this.fragShd = null;
     this.program = null;
 
     this.vaoLoc = -1;
-    this.uniformLoc = -1;
+    this.uModelViewLoc = -1;
 
     this.init(gl);
   }
@@ -37,10 +42,11 @@ class Scene {
   }
 
   createUniforms(gl) {
-    this.uniformLoc = gl.getUniformLocation(this.program, "u_mat");
+    this.uModelViewLoc = gl.getUniformLocation(this.program, "u_modelView");
   }
 
   createCube() {
+
   //   V4--------V5
   //   /|       /|
   //  / |      / |
@@ -62,28 +68,27 @@ class Scene {
   //        V7-----V6
 
   const verts = [
-    [0.0, 0.0, 0.0, 1.0], // v0
-    [0.1, 0.0, 0.0, 1.0], // v1
-    [0.1, 0.0, 0.1, 1.0], // v2
-    [0.0, 0.0, 0.1, 1.0], // v3
-
-    [0.0, 0.1, 0.0, 1.0], // v4
-    [0.1, 0.1, 0.0, 1.0], // v5
-    [0.1, 0.1, 0.1, 1.0], // v6
-    [0.0, 0.1, 0.1, 1.0], // v7
-  ];
-
-    const color = [
-      [0.0,0.0,1.0,1.0], // v0
-      [0.0,0.0,1.0,1.0], // v1
-      [0.0,0.0,1.0,1.0], // v2
-      [0.0,0.0,1.0,1.0], // v3
-      [0.0,1.0,0.0,1.0], // v4
-      [0.0,1.0,0.0,1.0], // v5
-      [0.0,1.0,0.0,1.0], // v6
-      [0.0,1.0,0.0,1.0]  // v7
+      [0.0, 0.0, 0.0, 1.0], // v0
+      [0.1, 0.0, 0.0, 1.0], // v1
+      [0.1, 0.0, 0.1, 1.0], // v2
+      [0.0, 0.0, 0.1, 1.0], // v3
+ 
+      [0.0, 0.1, 0.0, 1.0], // v4
+      [0.1, 0.1, 0.0, 1.0], // v5
+      [0.1, 0.1, 0.1, 1.0], // v6
+      [0.0, 0.1, 0.1, 1.0], // v7
     ];
 
+    const color = [
+      [1.0,0.0,0.0,1.0], // v0
+      [0.0,1.0,0.0,1.0], // v1
+      [0.0,0.0,1.0,1.0], // v2
+      [1.0,1.0,0.0,1.0], // v3
+      [1.0,0.0,1.0,1.0], // v4
+      [0.0,1.0,1.0,1.0]  // v5
+    ];
+
+    // orientação: sentido horário
     const vertsVBO = [
       ...verts[0], ...verts[3], ...verts[7],
       ...verts[0], ...verts[7], ...verts[4],
@@ -105,23 +110,23 @@ class Scene {
     ];
 
     const colorVBO =  [
-      ...color[0], ...color[3], ...color[7],
-      ...color[0], ...color[7], ...color[4],
+      ...color[0], ...color[0], ...color[0],
+      ...color[0], ...color[0], ...color[0],
 
-      ...color[5], ...color[1], ...color[0],
-      ...color[5], ...color[0], ...color[4],
+      ...color[1], ...color[1], ...color[1],
+      ...color[1], ...color[1], ...color[1],
 
-      ...color[1], ...color[2], ...color[3],
-      ...color[1], ...color[3], ...color[0],
-      
-      ...color[2], ...color[6], ...color[7],
-      ...color[2], ...color[7], ...color[3],
-      
-      ...color[5], ...color[6], ...color[2],
-      ...color[5], ...color[2], ...color[1],
-      
-      ...color[4], ...color[7], ...color[6],
-      ...color[4], ...color[6], ...color[5],
+      ...color[2], ...color[2], ...color[2],
+      ...color[2], ...color[2], ...color[2],
+
+      ...color[3], ...color[3], ...color[3],
+      ...color[3], ...color[3], ...color[3],
+
+      ...color[4], ...color[4], ...color[4],
+      ...color[4], ...color[4], ...color[4],
+
+      ...color[5], ...color[5], ...color[5],
+      ...color[5], ...color[5], ...color[5],
     ];
 
     return [vertsVBO, colorVBO];
@@ -142,31 +147,41 @@ class Scene {
     this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
   }
 
-  objectTransformation() {
+  modelMatrix() {
     this.angle += 0.001;
-    mat4.identity( this.mat );
+    mat4.identity( this.model );
 
-    mat4.rotateY(this.mat, this.mat, this.angle);
+    mat4.rotateY(this.model, this.model, this.angle);
     // [ cos(this.angle) 0 -sin(this.angle) 0, 
     //         0         1        0         0, 
     //   sin(this.angle) 0  cos(this.angle) 0, 
     //         0         0        0         1]
     // * this.mat 
 
-    mat4.translate(this.mat, this.mat, [-0.5, -0.5, -0.5]);
+    mat4.translate(this.model, this.model, [-0.25, -0.25, -0.25]);
     // [1 0 0 -0.5, 0 1 0 -0.5, 0 0 1 -0.5, 0 0 0 1] * this.mat 
 
-    mat4.scale(this.mat, this.mat, [10, 10, 10]);
+    mat4.scale(this.model, this.model, [5, 5, 5]);
     // [10 0 0 0, 0 10 0 0, 0 0 10 0, 0 0 0 1] * this.mat 
   }
 
+  viewMatrix() {
+    mat4.identity( this.view );
+    mat4.lookAt(this.view, this.eye, this.at, this.up);
+    // TODO: Tentar implementar as contas diretamente
+  }
 
   draw(gl) {  
     gl.useProgram(this.program);
     gl.bindVertexArray(this.vaoLoc);
 
-    this.objectTransformation();
-    gl.uniformMatrix4fv(this.uniformLoc, false, this.mat);
+    this.modelMatrix();
+    this.viewMatrix();
+
+    const modelView = mat4.create();
+    mat4.mul(modelView, this.view, this.model);
+
+    gl.uniformMatrix4fv(this.uModelViewLoc, false, modelView);
 
     gl.drawArrays(gl.TRIANGLES, 0, this.coords.length / 4);
   }
@@ -189,8 +204,17 @@ class Main {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
- 
+
+    // faces orientadas no sentido horário
+    this.gl.frontFace(this.gl.CW);
+
+    // face culling
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.cullFace(this.gl.BACK);
+
     this.scene.draw(this.gl);
+
+    this.gl.disable(this.gl.CULL_FACE);
 
     requestAnimationFrame(this.draw.bind(this));
   }
