@@ -9,6 +9,10 @@ export default class Camera {
     this.fovy = Math.PI / 4;
     this.aspect = gl.canvas.width / gl.canvas.height;
 
+    console.log(gl.canvas.width, gl.canvas.height, gl.canvas)
+
+    this.gl = gl;
+
     this.left = -2.5;
     this.right = 2.5;
     this.top = 2.5;
@@ -39,10 +43,9 @@ export default class Camera {
   updateProjectionMatrix(type = '') {
     mat4.identity( this.proj );
 
-    if (type === 'ortho') {
+    if (type === '') {
       mat4.ortho(this.proj, this.left, this.right, this.bottom, this.top, this.near, this.far);
     } else {
-      console.log(this.fovy, this.aspect, this.near, this.far)
       mat4.perspective(this.proj, this.fovy, this.aspect, this.near, this.far);
     }
   }

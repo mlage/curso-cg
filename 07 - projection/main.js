@@ -28,18 +28,22 @@ class Main {
     const canvas = document.querySelector("#glcanvas");
 
     this.gl = canvas.getContext("webgl2");
+
+    this.setViewport();
     this.scene = new Scene(this.gl);
   }
 
-  draw() {
+  setViewport() {
     var devicePixelRatio = window.devicePixelRatio || 1;
     this.gl.canvas.width = 1024 * devicePixelRatio;
-    this.gl.canvas.height = 768 * devicePixelRatio;
-
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    this.gl.canvas.height = 1024 * devicePixelRatio;
 
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+  }
+
+  draw() {
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
     this.scene.draw(this.gl);
 
