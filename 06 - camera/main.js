@@ -12,7 +12,7 @@ class Scene {
     this.angle = 0;
     this.model = mat4.create();
 
-    this.eye = vec3.fromValues(0.5, 0.5, 0.5);
+    this.eye = vec3.fromValues(0.1, 0.1, 0.1);
     this.at  = vec3.fromValues(0.0, 0.0, 0.0);
     this.up  = vec3.fromValues(.0, 1.0, 0.0);
     this.view = mat4.create();
@@ -153,7 +153,7 @@ class Scene {
   }
 
   modelMatrix() {
-    this.angle += 0.001;
+    this.angle += 0.005;
     mat4.identity( this.model );
 
     mat4.rotateY(this.model, this.model, this.angle);
