@@ -1,46 +1,32 @@
-
 import vertShaderSrc from './simple.vert.js';
 import fragShaderSrc from './simple.frag.js';
 
 import Shader from './shader.js';
 
-class Scene {
-  constructor(gl) {
+export default class Mesh {
+  constructor() {
+    // model coordinates
     this.coords = [];
     this.colors = [];
 
+    // Matriz de modelagem
     this.angle = 0;
-    this.mat = mat4.create();
+    this.model = mat4.create();
 
+    // Shader program
     this.vertShd = null;
     this.fragShd = null;
     this.program = null;
 
+    // Data location
     this.vaoLoc = -1;
-    this.uniformLoc = -1;
+    this.uModelViewProjLoc = -1;
 
-    this.init(gl);
+    // load mesh data
+    this.loadMesh();
   }
 
-  init(gl) {
-    this.createShaderProgram(gl);
-    this.createVAO(gl);
-    this.createUniforms(gl);
-  }
-
-  createShaderProgram(gl) {
-    this.vertShd = Shader.createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
-    this.fragShd = Shader.createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);
-    this.program = Shader.createProgram(gl, this.vertShd, this.fragShd);
-
-    gl.useProgram(this.program);
-  }
-
-  createUniforms(gl) {
-    this.uniformLoc = gl.getUniformLocation(this.program, "u_mat");
-  }
-
-  createCube() {
+  loadMesh() {
     //   V4--------V5
     //   /|       /|
     //  / |      / |
@@ -83,7 +69,7 @@ class Scene {
     ];
 
     // orientação: sentido anti-horário
-    const vertsVBO = [
+    this.coords = [
       ...verts[0], ...verts[3], ...verts[7],
       ...verts[0], ...verts[7], ...verts[4],
 
@@ -103,7 +89,7 @@ class Scene {
       ...verts[4], ...verts[6], ...verts[5],
     ];
 
-    const colorVBO = [
+    this.colors = [
       // F0 - X- (vermelho)
       ...color[0], ...color[0], ...color[0],
       ...color[0], ...color[0], ...color[0],
@@ -128,16 +114,21 @@ class Scene {
       ...color[4], ...color[4], ...color[4],
       ...color[4], ...color[4], ...color[4],
     ];
+  }
 
-    return [vertsVBO, colorVBO];
+  createShader(gl) {
+    this.vertShd = Shader.createShader(gl, gl.VERTEX_SHADER, vertShaderSrc);
+    this.fragShd = Shader.createShader(gl, gl.FRAGMENT_SHADER, fragShaderSrc);
+    this.program = Shader.createProgram(gl, this.vertShd, this.fragShd);
+
+    gl.useProgram(this.program);
+  }
+
+  createUniforms(gl) {
+    this.uModelViewProjLoc = gl.getUniformLocation(this.program, "u_modelViewProj");
   }
 
   createVAO(gl) {
-    const model = this.createCube();
-
-    this.coords = model[0];
-    this.colors = model[1];
-
     var coordsAttributeLocation = gl.getAttribLocation(this.program, "position");
     const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
 
@@ -145,74 +136,58 @@ class Scene {
     const colorsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.colors));
 
     this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
+  }  
+
+  init(gl) {
+    this.createShader(gl);
+    this.createUniforms(gl);
+    this.createVAO(gl);
   }
 
-  objectTransformation() {
-    this.angle += 0.001;
-    mat4.identity( this.mat );
+  updateModelMatrix() {
+    this.angle += 0.005;
+    this.delta = 0.0;
 
-    mat4.rotateY(this.mat, this.mat, this.angle);
+    mat4.identity( this.model );
+    mat4.translate(this.model, this.model, [this.delta, 0, 0]);
+    // [1 0 0 delta, 0 1 0 0, 0 0 1 0, 0 0 0 1] * this.mat 
+
+    mat4.rotateY(this.model, this.model, this.angle);
     // [ cos(this.angle) 0 -sin(this.angle) 0, 
     //         0         1        0         0, 
     //   sin(this.angle) 0  cos(this.angle) 0, 
     //         0         0        0         1]
     // * this.mat 
 
-    mat4.translate(this.mat, this.mat, [-0.5, -0.5, -0.5]);
+    mat4.translate(this.model, this.model, [-0.25, -0.25, -0.25]);
     // [1 0 0 -0.5, 0 1 0 -0.5, 0 0 1 -0.5, 0 0 0 1] * this.mat 
 
-    mat4.scale(this.mat, this.mat, [10, 10, 10]);
-    // [10 0 0 0, 0 10 0 0, 0 0 10 0, 0 0 0 1] * this.mat 
+    mat4.scale(this.model, this.model, [5, 5, 5]);
+    // [5 0 0 0, 0 5 0 0, 0 0 5 0, 0 0 0 1] * this.mat 
   }
 
-
-  draw(gl) {  
-    gl.useProgram(this.program);
-    gl.bindVertexArray(this.vaoLoc);
-
-    this.objectTransformation();
-    gl.uniformMatrix4fv(this.uniformLoc, false, this.mat);
-
-    gl.drawArrays(gl.TRIANGLES, 0, this.coords.length / 4);
-  }
-}
-
-class Main {
-  constructor() {
-    const canvas = document.querySelector("#glcanvas");
-
-    this.gl = canvas.getContext("webgl2");
-    this.scene = new Scene(this.gl);
-  }
-
-  draw() {
-    var devicePixelRatio = window.devicePixelRatio || 1;
-    this.gl.canvas.width = 1024 * devicePixelRatio;
-    this.gl.canvas.height = 768 * devicePixelRatio;
-
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
- 
-    // faces orientadas no sentido horário
-    this.gl.frontFace(this.gl.CCW);
+  draw(gl, cam) {
+    // faces orientadas no sentido anti-horário
+    gl.frontFace(gl.CCW);
 
     // face culling
-    this.gl.enable(this.gl.CULL_FACE);
-    this.gl.cullFace(this.gl.BACK);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
 
-    this.scene.draw(this.gl);
+    this.updateModelMatrix();
 
-    this.gl.disable(this.gl.CULL_FACE);
+    const model = this.model;
+    const view = cam.getView();
+    const proj = cam.getProj();
 
-    requestAnimationFrame(this.draw.bind(this));
+    const mvp = mat4.create();
+    mat4.mul(mvp, view, model);
+    mat4.mul(mvp, proj, mvp);
+
+    gl.useProgram(this.program);
+    gl.uniformMatrix4fv(this.uModelViewProjLoc, false, mvp);
+    gl.drawArrays(gl.TRIANGLES, 0, this.coords.length / 4);
+
+    gl.disable(gl.CULL_FACE);
   }
 }
-
-window.onload = () => {
-  const app = new Main();
-  app.draw();
-}
-
-

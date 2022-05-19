@@ -1,0 +1,12 @@
+body { 
+    background-color: rgb(255, 255, 255);
+}
+
+#glcanvas {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    width: 1024;
+    height: 768;
+    background-color: black;
+}
