@@ -1,4 +1,5 @@
 import Camera from './camera.js';
+import Light from './light.js';
 import Mesh from './mesh.js';
 
 class Scene {
@@ -6,8 +7,11 @@ class Scene {
     // Camera virtual
     this.cam = new Camera(gl);
 
+    // Luz
+    this.light = new Light();
+
     // Mesh
-    this.mesh = new Mesh(1.0);
+    this.mesh = new Mesh( 1.0);
     this.copy = new Mesh(-1.0);
 
     // Initialization
@@ -15,14 +19,16 @@ class Scene {
   }
 
   init(gl) {
-    this.mesh.init(gl);
-    this.copy.init(gl);
+    this.mesh.init(gl, this.light);
+    this.copy.init(gl, this.light);
   }
 
   draw(gl) {  
     this.cam.updateCam();
-    this.mesh.draw(gl, this.cam);
-    this.copy.draw(gl, this.cam);
+    this.light.updateLight();
+
+    this.mesh.draw(gl, this.cam, this.light);
+    this.copy.draw(gl, this.cam, this.light);
   }
 }
 

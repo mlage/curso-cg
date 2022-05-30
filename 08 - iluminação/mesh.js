@@ -1,5 +1,5 @@
-import vertShaderSrc from './simple.vert.js';
-import fragShaderSrc from './simple.frag.js';
+import vertShaderSrc from './phong.vert.js';
+import fragShaderSrc from './phong.frag.js';
 
 import Shader from './shader.js';
 
@@ -8,6 +8,7 @@ export default class Mesh {
     // model coordinates
     this.coords = [];
     this.colors = [];
+    this.normals = [];
 
     // Matriz de modelagem
     this.angle = 0;
@@ -21,7 +22,9 @@ export default class Mesh {
 
     // Data location
     this.vaoLoc = -1;
-    this.uModelViewProjLoc = -1;
+    this.uModelLoc = -1;
+    this.uViewLoc = -1;
+    this.uProjectionLoc = -1;
 
     // load mesh data
     this.loadMesh();
@@ -48,7 +51,7 @@ export default class Mesh {
     //        |      |
     //        V7-----V6
 
-    const verts = [
+    const coords = [
       [0.0, 0.0, 0.0, 1.0], // v0 
       [0.1, 0.0, 0.0, 1.0], // v1
       [0.1, 0.0, 0.1, 1.0], // v2
@@ -58,6 +61,15 @@ export default class Mesh {
       [0.1, 0.1, 0.0, 1.0], // v5
       [0.1, 0.1, 0.1, 1.0], // v6
       [0.0, 0.1, 0.1, 1.0], // v7
+    ];
+
+    const normals = [
+      [ 1.0, 0.0, 0.0, 0.0],
+      [-1.0, 0.0, 0.0, 0.0],
+      [ 0.0, 1.0, 0.0, 0.0],
+      [ 0.0,-1.0, 0.0, 0.0],
+      [ 0.0, 0.0, 1.0, 0.0],
+      [ 0.0, 0.0,-1.0, 0.0],
     ];
 
     const color = [
@@ -71,24 +83,44 @@ export default class Mesh {
 
     // orientação: sentido anti-horário
     this.coords = [
-      ...verts[0], ...verts[3], ...verts[7],
-      ...verts[0], ...verts[7], ...verts[4],
+      ...coords[0], ...coords[3], ...coords[7],
+      ...coords[0], ...coords[7], ...coords[4],
 
-      ...verts[5], ...verts[1], ...verts[0],
-      ...verts[5], ...verts[0], ...verts[4],
+      ...coords[5], ...coords[1], ...coords[0],
+      ...coords[5], ...coords[0], ...coords[4],
 
-      ...verts[1], ...verts[2], ...verts[3],
-      ...verts[1], ...verts[3], ...verts[0],
+      ...coords[1], ...coords[2], ...coords[3],
+      ...coords[1], ...coords[3], ...coords[0],
 
-      ...verts[2], ...verts[6], ...verts[7],
-      ...verts[2], ...verts[7], ...verts[3],
+      ...coords[2], ...coords[6], ...coords[7],
+      ...coords[2], ...coords[7], ...coords[3],
 
-      ...verts[5], ...verts[6], ...verts[2],
-      ...verts[5], ...verts[2], ...verts[1],
+      ...coords[5], ...coords[6], ...coords[2],
+      ...coords[5], ...coords[2], ...coords[1],
 
-      ...verts[4], ...verts[7], ...verts[6],
-      ...verts[4], ...verts[6], ...verts[5],
+      ...coords[4], ...coords[7], ...coords[6],
+      ...coords[4], ...coords[6], ...coords[5],
     ];
+
+    this.normals = [
+      ...normals[1], ...normals[1], ...normals[1],
+      ...normals[1], ...normals[1], ...normals[1],
+
+      ...normals[3], ...normals[3], ...normals[3],
+      ...normals[3], ...normals[3], ...normals[3],
+
+      ...normals[5], ...normals[5], ...normals[5],
+      ...normals[5], ...normals[5], ...normals[5],
+
+      ...normals[4], ...normals[4], ...normals[4],
+      ...normals[4], ...normals[4], ...normals[4],
+
+      ...normals[0], ...normals[0], ...normals[0],
+      ...normals[0], ...normals[0], ...normals[0],
+
+      ...normals[2], ...normals[2], ...normals[2],
+      ...normals[2], ...normals[2], ...normals[2],
+    ]
 
     this.colors = [
       // F0 - X- (vermelho)
@@ -126,7 +158,9 @@ export default class Mesh {
   }
 
   createUniforms(gl) {
-    this.uModelViewProjLoc = gl.getUniformLocation(this.program, "u_modelViewProj");
+    this.uModelLoc = gl.getUniformLocation(this.program, "u_model");
+    this.uViewLoc = gl.getUniformLocation(this.program, "u_view");
+    this.uProjectionLoc = gl.getUniformLocation(this.program, "u_projection");
   }
 
   createVAO(gl) {
@@ -136,13 +170,21 @@ export default class Mesh {
     var colorsAttributeLocation = gl.getAttribLocation(this.program, "color");
     const colorsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.colors));
 
-    this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
+    var normalsAttributeLocation = gl.getAttribLocation(this.program, "normal");
+    const normalsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.normals));
+
+    this.vaoLoc = Shader.createVAO(gl,
+      coordsAttributeLocation, coordsBuffer, 
+      colorsAttributeLocation, colorsBuffer, 
+      normalsAttributeLocation, normalsBuffer);
   }  
 
-  init(gl) {
+  init(gl, light) {
     this.createShader(gl);
     this.createUniforms(gl);
     this.createVAO(gl);
+
+    light.createUniforms(gl, this.program);
   }
 
   updateModelMatrix() {
@@ -166,7 +208,7 @@ export default class Mesh {
     // [5 0 0 0, 0 5 0 0, 0 0 5 0, 0 0 0 1] * this.mat 
   }
 
-  draw(gl, cam) {
+  draw(gl, cam, light) {
     // faces orientadas no sentido anti-horário
     gl.frontFace(gl.CCW);
 
@@ -174,19 +216,18 @@ export default class Mesh {
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
+    // updates the model transformations
     this.updateModelMatrix();
 
     const model = this.model;
     const view = cam.getView();
     const proj = cam.getProj();
 
-    const mvp = mat4.create();
-    mat4.mul(mvp, view, model);
-    mat4.mul(mvp, proj, mvp);
-
     gl.useProgram(this.program);
-    gl.uniformMatrix4fv(this.uModelViewProjLoc, false, mvp);
-    
+    gl.uniformMatrix4fv(this.uModelLoc, false, model);
+    gl.uniformMatrix4fv(this.uViewLoc, false, view);
+    gl.uniformMatrix4fv(this.uProjectionLoc, false, proj);
+
     gl.drawArrays(gl.TRIANGLES, 0, this.coords.length / 4);
 
     gl.disable(gl.CULL_FACE);

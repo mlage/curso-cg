@@ -195,7 +195,7 @@ class Main {
 
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
  
-    // faces orientadas no sentido horário
+    // faces orientadas no sentido anti-horário
     this.gl.frontFace(this.gl.CCW);
 
     // face culling
