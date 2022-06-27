@@ -41,8 +41,10 @@ class Main {
 
     this.scene = new Scene(this.gl);
     this.scene.init(this.gl).then(() => {
-      this.draw();
+      this.draw()
     });
+
+    
   }
 
   setViewport() {
@@ -65,7 +67,6 @@ class Main {
 
 window.onload = () => {
   const app = new Main();
-  app.draw();
 }
 
 
