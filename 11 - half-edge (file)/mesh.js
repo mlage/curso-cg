@@ -126,17 +126,21 @@ export default class Mesh {
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
+    gl.useProgram(this.program);
+
     // updates the model transformations
     this.updateModelMatrix();
 
     const model = this.model;
     const view = cam.getView();
     const proj = cam.getProj();
-
-    gl.useProgram(this.program);
+    
     gl.uniformMatrix4fv(this.uModelLoc, false, model);
     gl.uniformMatrix4fv(this.uViewLoc, false, view);
     gl.uniformMatrix4fv(this.uProjectionLoc, false, proj);
+
+    gl.bindVertexArray(this.vaoLoc);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesLoc);
 
     gl.drawElements(gl.TRIANGLES, this.heds.faces.length * 3, gl.UNSIGNED_INT, 0);
 
