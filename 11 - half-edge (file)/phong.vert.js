@@ -19,6 +19,7 @@ void main() {
 
   // posição final do vertice
   gl_Position  = u_projection * modelView * position;
+  gl_Position /= gl_Position.w;
 
   fPosition = position;
   fColor = color;

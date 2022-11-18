@@ -2,6 +2,7 @@ import vertShaderSrc from './phong.vert.js';
 import fragShaderSrc from './phong.frag.js';
 
 import Shader from './shader.js';
+
 import { HalfEdgeDS } from './half-edge.js';
 
 export default class Mesh {
