@@ -3,6 +3,7 @@ export default
 precision highp float;
 
 in vec4 vColor;
+
 uniform vec4 u_amb;
 
 out vec4 minhaColor;

@@ -25,10 +25,9 @@ class Scene {
 
   draw(gl) {  
     this.cam.updateCam();
-    this.light.updateLight();
-
-    this.mesh.draw(gl, this.cam, this.light);
-    this.copy.draw(gl, this.cam, this.light);
+    
+    this.mesh.draw(gl, this.cam);
+    this.copy.draw(gl, this.cam);
   }
 }
 

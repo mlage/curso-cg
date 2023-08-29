@@ -208,13 +208,13 @@ export default class Mesh {
     // [5 0 0 0, 0 5 0 0, 0 0 5 0, 0 0 0 1] * this.mat 
   }
 
-  draw(gl, cam, light) {
+  draw(gl, cam) {
     // faces orientadas no sentido anti-horário
     gl.frontFace(gl.CCW);
 
     // face culling
     gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
+    gl.cullFace(gl.FRONT);
 
     // updates the model transformations
     this.updateModelMatrix();

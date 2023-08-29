@@ -1,8 +1,10 @@
 export default class Shader {
   static createShader(gl, type, source) {
     var shader = gl.createShader(type);
+
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
+
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
       var info = gl.getShaderInfoLog(shader);
       console.log('Could not compile WebGL program:' + info);
@@ -17,6 +19,7 @@ export default class Shader {
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
+
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       var info = gl.getProgramInfoLog(program);
       console.log('Could not compile WebGL program:' + info);
@@ -48,7 +51,6 @@ export default class Shader {
   static createVAO(gl, posAttribLoc, posBuffer, colorAttribLoc = null, colorBuffer = null, normAttribLoc = null, normBuffer = null) {
 
     var vao = gl.createVertexArray();
-
     gl.bindVertexArray(vao);
 
     if (posAttribLoc != null && posAttribLoc != undefined) {

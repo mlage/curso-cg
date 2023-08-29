@@ -1,9 +1,9 @@
 export default class Light {
   constructor() {
-    this.pos = vec4.fromValues(2.0, 2.0, 2.0, 1.0);
+    this.pos = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
 
     this.amb_c = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-    this.amb_k = 0.5;
+    this.amb_k = 0.0;
 
     this.dif_c = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
     this.dif_k = 0.5;

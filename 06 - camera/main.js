@@ -12,9 +12,9 @@ class Scene {
     this.angle = 0;
     this.model = mat4.create();
 
-    this.eye = vec3.fromValues(0.0, 0.3, 0.3);
+    this.eye = vec3.fromValues(0.0, 0.0, 0.0);
     this.at  = vec3.fromValues(0.0, 0.0, 0.0);
-    this.up  = vec3.fromValues(0.0, 1.0, 0.0);
+    this.up  = vec3.fromValues(1.0, 0.0, 0.0);
 
     this.delta = 0.0;
     this.view = mat4.create();
@@ -148,9 +148,9 @@ class Scene {
     this.colors = model[1];
 
     var coordsAttributeLocation = gl.getAttribLocation(this.program, "position");
-    const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
-
     var colorsAttributeLocation = gl.getAttribLocation(this.program, "color");
+
+    const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
     const colorsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.colors));
 
     this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
@@ -175,15 +175,15 @@ class Scene {
   }
 
   lookAt(eye, at, up) {
-    
   }
 
   viewMatrix() {
     mat4.identity( this.view );
 
-    this.delta += 0.001;
-    this.delta  = this.delta >= 1 ? 1 : this.delta; 
-    this.up = vec3.fromValues(this.delta, 1-this.delta, 0.0);
+    this.delta += 0.0025;
+    this.delta  = this.delta >= 1 ? 0 : this.delta; 
+    this.eye = vec3.fromValues(0, this.delta, this.delta);
+  
     mat4.lookAt(this.view, this.eye, this.at, this.up);
     // TODO: Tentar implementar as contas diretamente
   }
@@ -216,20 +216,20 @@ class Scene {
 class Main {
   constructor() {
     const canvas = document.querySelector("#glcanvas");
-
     this.gl = canvas.getContext("webgl2");
-    this.scene = new Scene(this.gl);
-  }
-
-  draw() {
+    
     var devicePixelRatio = window.devicePixelRatio || 1;
     this.gl.canvas.width = 1024 * devicePixelRatio;
     this.gl.canvas.height = 768 * devicePixelRatio;
 
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+
+    this.scene = new Scene(this.gl);
+  }
+
+  draw() {
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
     this.scene.draw(this.gl);
 

@@ -28,8 +28,8 @@ class Scene {
   createVAO(gl) {
     this.coords = [
       0.0, 0.0, 0.0, 1.0,
-      -0.5, 0.0, 0.0, 1.0,
-      0.0, 0.5, 0.0, 1.0
+      -2.0, 0.0, 0.0, 1.0,
+      0.0, 1.0, 0.0, 1.0
     ];
 
     this.colors = [
@@ -38,11 +38,11 @@ class Scene {
       0.0, 1.0, 0.0, 1.0
     ];
 
-    var coordsAttributeLocation = gl.getAttribLocation(this.program, "position");
     const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
-
-    var colorsAttributeLocation = gl.getAttribLocation(this.program, "color");
     const colorsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.colors));
+
+    var coordsAttributeLocation = gl.getAttribLocation(this.program, "position");
+    var colorsAttributeLocation = gl.getAttribLocation(this.program, "color");
 
     this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
   }
@@ -60,19 +60,18 @@ class Main {
     const canvas = document.querySelector("#glcanvas");
     this.gl = canvas.getContext("webgl2");
     
-    this.scene = new Scene(this.gl);
-  }
-
-  draw() {
     var devicePixelRatio = window.devicePixelRatio || 1;
     this.gl.canvas.width = 1024 * devicePixelRatio;
     this.gl.canvas.height = 768 * devicePixelRatio;
 
-    // TODO: checar
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+    
+    this.scene = new Scene(this.gl);
+  }
 
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+  draw() {
+    this.gl.clearColor(0.8, 0.8, 0.8, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
     this.scene.draw(this.gl);
 
@@ -81,7 +80,5 @@ class Main {
 
 }
 
-window.onload = () => {
-  const app = new Main();
-  app.draw();
-}
+const app = new Main();
+app.draw();

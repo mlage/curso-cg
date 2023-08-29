@@ -12,7 +12,7 @@ out vec4 vColor;
 
 void main()
 {
-    gl_Position.xy = position.xy * u_s + vec2(u_dp, 0.0);
+    gl_Position.xy = position.xy * u_s + vec2(u_dp, u_dp);
     gl_Position.zw = vec2(0.0, 1.0);
 
     vColor = color;

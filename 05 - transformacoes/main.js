@@ -139,9 +139,9 @@ class Scene {
     this.colors = model[1];
 
     var coordsAttributeLocation = gl.getAttribLocation(this.program, "position");
-    const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
-
     var colorsAttributeLocation = gl.getAttribLocation(this.program, "color");
+
+    const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
     const colorsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.colors));
 
     this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
@@ -152,6 +152,7 @@ class Scene {
     mat4.identity( this.mat );
 
     mat4.rotateY(this.mat, this.mat, this.angle);
+    mat4.rotateZ(this.mat, this.mat, this.angle);
     // [ cos(this.angle) 0 -sin(this.angle) 0, 
     //         0         1        0         0, 
     //   sin(this.angle) 0  cos(this.angle) 0, 
@@ -165,8 +166,7 @@ class Scene {
     // [10 0 0 0, 0 10 0 0, 0 0 10 0, 0 0 0 1] * this.mat 
   }
 
-
-  draw(gl) {  
+  draw(gl) {
     // faces orientadas no sentido anti-horário
     gl.frontFace(gl.CCW);
 
@@ -191,18 +191,18 @@ class Main {
     const canvas = document.querySelector("#glcanvas");
     this.gl = canvas.getContext("webgl2");
 
-    this.scene = new Scene(this.gl);
-  }
-
-  draw() {
     var devicePixelRatio = window.devicePixelRatio || 1;
     this.gl.canvas.width = 1024 * devicePixelRatio;
     this.gl.canvas.height = 768 * devicePixelRatio;
 
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+
+    this.scene = new Scene(this.gl);
+  }
+
+  draw() {
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
     this.scene.draw(this.gl);
 

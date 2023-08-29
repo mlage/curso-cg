@@ -131,7 +131,7 @@ export default class Mesh {
 
     // set which texture units to render with.
     gl.activeTexture(gl.TEXTURE0);
-    gl.uniform1i(this.uColorMap, 0);
+    gl.uniform1i(this.uColorMap, gl.TEXTURE0);
   }
 
   init(gl, light) {

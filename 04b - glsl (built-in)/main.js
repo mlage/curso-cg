@@ -58,30 +58,24 @@ class Scene {
     ];
 
     var coordsAttributeLocation = gl.getAttribLocation(this.program, "position");
-    const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
-
     var colorsAttributeLocation = gl.getAttribLocation(this.program, "color");
+
+    const coordsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.coords));
     const colorsBuffer = Shader.createBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(this.colors));
 
     this.vaoLoc = Shader.createVAO(gl, coordsAttributeLocation, coordsBuffer, colorsAttributeLocation, colorsBuffer);
   }
 
   draw(gl) {
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
     this.translate += (this.translate < 0.5) ? 0.001 : -0.5;
 
     gl.useProgram(this.program);
-
     gl.bindVertexArray(this.vaoLoc);
 
     gl.uniform1f(this.uniformLoc, this.translate);  
     gl.uniform1f(this.uniformLoc2, 0.5);  
 
     gl.drawArrays(gl.POINTS, 0, 3);
-
-    gl.disable(gl.BLEND);
   }
 }
 
@@ -91,17 +85,17 @@ class Main {
 
     this.gl = canvas.getContext("webgl2");
     this.scene = new Scene(this.gl);
-  }
 
-  draw() {
     var devicePixelRatio = window.devicePixelRatio || 1;
     this.gl.canvas.width = 1024 * devicePixelRatio;
     this.gl.canvas.height = 768 * devicePixelRatio;
 
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+  }
+
+  draw() {
     this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
     this.scene.draw(this.gl);
 

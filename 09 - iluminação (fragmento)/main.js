@@ -35,8 +35,8 @@ class Scene {
 class Main {
   constructor() {
     const canvas = document.querySelector("#glcanvas");
-
     this.gl = canvas.getContext("webgl2");
+
     this.setViewport();
 
     this.scene = new Scene(this.gl);

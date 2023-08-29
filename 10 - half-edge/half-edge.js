@@ -4,7 +4,6 @@ export class Vertex {
 
     this.position = [x, y, z, 1];
     this.normal = [0.0, 0.0, 0.0, 0.0];
-
     this.color = color;
 
     this.he = null;

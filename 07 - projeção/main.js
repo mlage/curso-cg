@@ -1,4 +1,4 @@
-import Camera from './camera.js';
+import Camera from './cameraP.js';
 import Mesh from './mesh.js';
 
 class Scene {
@@ -32,17 +32,13 @@ class Main {
     const canvas = document.querySelector("#glcanvas");
     this.gl = canvas.getContext("webgl2");
     
-    this.setViewport();
-
-    this.scene = new Scene(this.gl);
-  }
-
-  setViewport() {
     var devicePixelRatio = window.devicePixelRatio || 1;
     this.gl.canvas.width = 1024 * devicePixelRatio;
     this.gl.canvas.height = 768 * devicePixelRatio;
 
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+
+    this.scene = new Scene(this.gl);
   }
 
   draw() {

@@ -54,5 +54,5 @@ void main() {
   gl_Position  = u_projection * viewPosition;
 
   // cor final do vértice
-  vColor = 0.25 * color + 0.75 * (light_amb_k * light_amb_c + fatorDif * light_dif_k * light_dif_c + fatorEsp * light_esp_k * light_esp_c);
+  vColor = 0.4 * color + 0.6 * (light_amb_k * light_amb_c + fatorDif * light_dif_k * light_dif_c + fatorEsp * light_esp_k * light_esp_c);
 }`
