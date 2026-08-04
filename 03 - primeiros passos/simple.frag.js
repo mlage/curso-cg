@@ -1,13 +1,6 @@
-export default
-`#version 300 es
-precision highp float;
-
-in vec4 vColor;
-out vec4 outColor;
-
-void main()
-{
-    outColor = vColor;
-}`
-
-
+export default /* wgsl */ `
+@fragment
+fn main(@location(0) color : vec4f) -> @location(0) vec4f {
+  return color;
+}
+`;
