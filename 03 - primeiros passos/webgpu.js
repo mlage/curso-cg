@@ -1,53 +1,23 @@
-export default class WebGPU {
-  static async createContext(canvas) {
-    if (!navigator.gpu) {
-      throw new Error('WebGPU não é suportado neste navegador.');
-    }
-
-    const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter) {
-      throw new Error('Não foi possível obter um adaptador WebGPU.');
-    }
-
-    const device = await adapter.requestDevice();
-    const context = canvas.getContext('webgpu');
-    const format = navigator.gpu.getPreferredCanvasFormat();
-
-    return { device, context, format };
+class GPUCanvas {
+  constructor(canvas, device, context, format) {
+    this.canvas = canvas;
+    this.device = device;
+    this.context = context;
+    this.format = format;
+    this.clearColor = { r: 0, g: 0, b: 0, a: 1 };
   }
 
-  static resizeCanvas(canvas, width, height) {
+  resize(width, height) {
     const devicePixelRatio = window.devicePixelRatio || 1;
-    canvas.width = width * devicePixelRatio;
-    canvas.height = height * devicePixelRatio;
+    this.canvas.width = width * devicePixelRatio;
+    this.canvas.height = height * devicePixelRatio;
   }
 
-  static configureCanvas(context, device, format) {
-    context.configure({
-      device,
-      format,
-      alphaMode: 'opaque',
-    });
-  }
+  createProgram(vertexShaderSource, fragmentShaderSource) {
+    const vertexModule = this.device.createShaderModule({ code: vertexShaderSource });
+    const fragmentModule = this.device.createShaderModule({ code: fragmentShaderSource });
 
-  static createVertexBuffer(device, data) {
-    const buffer = device.createBuffer({
-      size: data.byteLength,
-      usage: GPUBufferUsage.VERTEX,
-      mappedAtCreation: true,
-    });
-
-    new Float32Array(buffer.getMappedRange()).set(data);
-    buffer.unmap();
-
-    return buffer;
-  }
-
-  static createPipeline(device, format, vertexShaderSource, fragmentShaderSource) {
-    const vertexModule = device.createShaderModule({ code: vertexShaderSource });
-    const fragmentModule = device.createShaderModule({ code: fragmentShaderSource });
-
-    return device.createRenderPipeline({
+    return this.device.createRenderPipeline({
       layout: 'auto',
       vertex: {
         module: vertexModule,
@@ -66,7 +36,7 @@ export default class WebGPU {
       fragment: {
         module: fragmentModule,
         entryPoint: 'main',
-        targets: [{ format }],
+        targets: [{ format: this.format }],
       },
       primitive: {
         topology: 'triangle-list',
@@ -74,30 +44,84 @@ export default class WebGPU {
     });
   }
 
-  static render(device, context, clearValue, draw) {
-    const encoder = device.createCommandEncoder();
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [{
-        view: context.getCurrentTexture().createView(),
-        clearValue,
-        loadOp: 'clear',
-        storeOp: 'store',
-      }],
+  createColoredTriangle(positions, colors) {
+    return {
+      positionBuffer: this.createVertexBuffer(new Float32Array(positions)),
+      colorBuffer: this.createVertexBuffer(new Float32Array(colors)),
+      vertexCount: 3,
+    };
+  }
+
+  createVertexBuffer(data) {
+    const buffer = this.device.createBuffer({
+      size: data.byteLength,
+      usage: GPUBufferUsage.VERTEX,
+      mappedAtCreation: true,
     });
 
-    draw(pass);
-    pass.end();
-    device.queue.submit([encoder.finish()]);
+    new Float32Array(buffer.getMappedRange()).set(data);
+    buffer.unmap();
+
+    return buffer;
   }
 
-  static draw(pass, pipeline, vertexBuffers, vertexCount) {
-    pass.setPipeline(pipeline);
+  clear(r, g, b, a) {
+    this.clearColor = { r, g, b, a };
+  }
 
-    for (const [index, buffer] of vertexBuffers.entries()) {
-      pass.setVertexBuffer(index, buffer);
+  draw(program, shape) {
+    if (!this.encoder) {
+      this.encoder = this.device.createCommandEncoder();
+      this.pass = this.encoder.beginRenderPass({
+        colorAttachments: [{
+          view: this.context.getCurrentTexture().createView(),
+          clearValue: this.clearColor,
+          loadOp: 'clear',
+          storeOp: 'store',
+        }],
+      });
     }
 
-    pass.draw(vertexCount);
+    this.pass.setPipeline(program);
+    this.pass.setVertexBuffer(0, shape.positionBuffer);
+    this.pass.setVertexBuffer(1, shape.colorBuffer);
+    this.pass.draw(shape.vertexCount);
   }
 
+  present() {
+    this.pass.end();
+    this.device.queue.submit([this.encoder.finish()]);
+    this.encoder = null;
+    this.pass = null;
+  }
+}
+
+export default class WebGPU {
+  static async createCanvas(selector, width, height) {
+    const canvas = document.querySelector(selector);
+
+    if (!navigator.gpu) {
+      throw new Error('WebGPU is not supported in this browser.');
+    }
+
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+      throw new Error('Could not get a WebGPU adapter.');
+    }
+
+    const device = await adapter.requestDevice();
+    const context = canvas.getContext('webgpu');
+    const format = navigator.gpu.getPreferredCanvasFormat();
+
+    const gpu = new GPUCanvas(canvas, device, context, format);
+    gpu.resize(width, height);
+
+    context.configure({
+      device,
+      format,
+      alphaMode: 'opaque',
+    });
+
+    return gpu;
+  }
 }

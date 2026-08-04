@@ -3,57 +3,38 @@ import fragShaderSrc from './simple.frag.js';
 import WebGPU from './webgpu.js';
 
 class Scene {
-  constructor(device, format) {
-    this.vertexCount = 3;
+  constructor(gpu) {
+    this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc);
 
-    this.positions = new Float32Array([
-      0.0, 0.0, 0.0, 1.0,
-      -1.0, 0.0, 0.0, 1.0,
-      0.0, 1.0, 0.0, 1.0,
-    ]);
-
-    this.colors = new Float32Array([
-      0.0, 0.0, 1.0, 1.0,
-      1.0, 0.0, 0.0, 1.0,
-      0.0, 1.0, 0.0, 1.0,
-    ]);
-
-    this.positionBuffer = WebGPU.createVertexBuffer(device, this.positions);
-    this.colorBuffer = WebGPU.createVertexBuffer(device, this.colors);
-    this.pipeline = WebGPU.createPipeline(device, format, vertShaderSrc, fragShaderSrc);
+    this.triangle = gpu.createColoredTriangle(
+      [
+        0.0, 0.0, 0.0, 1.0,
+        -1.0, 0.0, 0.0, 1.0,
+        0.0, 1.0, 0.0, 1.0,
+      ],
+      [
+        0.0, 0.0, 1.0, 1.0,
+        1.0, 0.0, 0.0, 1.0,
+        0.0, 1.0, 0.0, 1.0,
+      ],
+    );
   }
 
-  draw(pass) {
-    WebGPU.draw(pass, this.pipeline, [this.positionBuffer, this.colorBuffer], this.vertexCount);
+  draw(gpu) {
+    gpu.draw(this.program, this.triangle);
   }
 }
 
 class Main {
-  constructor() {
-    this.canvas = document.querySelector('#glcanvas');
-    this.scene = null;
-  }
-
   async init() {
-    const gpu = await WebGPU.createContext(this.canvas);
-
-    this.device = gpu.device;
-    this.context = gpu.context;
-    this.format = gpu.format;
-
-    WebGPU.resizeCanvas(this.canvas, 1024, 768);
-    WebGPU.configureCanvas(this.context, this.device, this.format);
-
-    this.scene = new Scene(this.device, this.format);
-    window.addEventListener('resize', () => WebGPU.resizeCanvas(this.canvas, 1024, 768));
+    this.gpu = await WebGPU.createCanvas('#glcanvas', 1024, 768);
+    this.scene = new Scene(this.gpu);
   }
 
   draw() {
-    WebGPU.render(this.device, this.context, {
-      r: 0.8, g: 0.8, b: 0.8, a: 1.0,
-    }, (pass) => {
-      this.scene.draw(pass);
-    });
+    this.gpu.clear(0.8, 0.8, 0.8, 1.0);
+    this.scene.draw(this.gpu);
+    this.gpu.present();
 
     requestAnimationFrame(this.draw.bind(this));
   }
