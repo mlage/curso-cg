@@ -1,9 +1,9 @@
 import vertShaderSrc from './simple.vert.js';
 import fragShaderSrc from './simple.frag.js';
+import WebGPU from './webgpu.js';
 
 class Scene {
   constructor(device, format) {
-    this.device = device;
     this.vertexCount = 3;
 
     this.positions = new Float32Array([
@@ -18,118 +18,47 @@ class Scene {
       0.0, 1.0, 0.0, 1.0,
     ]);
 
-    this.positionBuffer = this.createVertexBuffer(this.positions);
-    this.colorBuffer = this.createVertexBuffer(this.colors);
-    this.pipeline = this.createPipeline(format);
-  }
-
-  createVertexBuffer(data) {
-    const buffer = this.device.createBuffer({
-      size: data.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      mappedAtCreation: true,
-    });
-
-    new Float32Array(buffer.getMappedRange()).set(data);
-    buffer.unmap();
-
-    return buffer;
-  }
-
-  createPipeline(format) {
-    const vertexModule = this.device.createShaderModule({ code: vertShaderSrc });
-    const fragmentModule = this.device.createShaderModule({ code: fragShaderSrc });
-
-    return this.device.createRenderPipeline({
-      layout: 'auto',
-      vertex: {
-        module: vertexModule,
-        entryPoint: 'main',
-        buffers: [
-          {
-            arrayStride: 4 * 4,
-            attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x4' }],
-          },
-          {
-            arrayStride: 4 * 4,
-            attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x4' }],
-          },
-        ],
-      },
-      fragment: {
-        module: fragmentModule,
-        entryPoint: 'main',
-        targets: [{ format }],
-      },
-      primitive: {
-        topology: 'triangle-list',
-      },
-    });
+    this.positionBuffer = WebGPU.createVertexBuffer(device, this.positions);
+    this.colorBuffer = WebGPU.createVertexBuffer(device, this.colors);
+    this.pipeline = WebGPU.createPipeline(device, format, vertShaderSrc, fragShaderSrc);
   }
 
   draw(pass) {
-    pass.setPipeline(this.pipeline);
-    pass.setVertexBuffer(0, this.positionBuffer);
-    pass.setVertexBuffer(1, this.colorBuffer);
-    pass.draw(this.vertexCount);
+    WebGPU.draw(pass, this.pipeline, [this.positionBuffer, this.colorBuffer], this.vertexCount);
   }
 }
 
 class Main {
   constructor() {
     this.canvas = document.querySelector('#glcanvas');
-    this.device = null;
-    this.context = null;
     this.scene = null;
   }
 
   async init() {
-    if (!navigator.gpu) {
-      throw new Error('WebGPU não é suportado neste navegador.');
-    }
+    const gpu = await WebGPU.createContext(this.canvas);
 
-    const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter) {
-      throw new Error('Não foi possível obter um adaptador WebGPU.');
-    }
+    this.device = gpu.device;
+    this.context = gpu.context;
+    this.format = gpu.format;
 
-    this.device = await adapter.requestDevice();
-    this.context = this.canvas.getContext('webgpu');
-    this.format = navigator.gpu.getPreferredCanvasFormat();
-
-    this.resize();
-
-    this.context.configure({
-      device: this.device,
-      format: this.format,
-      alphaMode: 'opaque',
-    });
+    WebGPU.resizeCanvas(this.canvas, 1024, 768);
+    WebGPU.configureCanvas(this.context, this.device, this.format);
 
     this.scene = new Scene(this.device, this.format);
-    window.addEventListener('resize', () => this.resize());
-  }
-
-  resize() {
-    const devicePixelRatio = window.devicePixelRatio || 1;
-    this.canvas.width = 1024 * devicePixelRatio;
-    this.canvas.height = 768 * devicePixelRatio;
+    window.addEventListener('resize', () => WebGPU.resizeCanvas(this.canvas, 1024, 768));
   }
 
   draw() {
-    const encoder = this.device.createCommandEncoder();
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [{
-        view: this.context.getCurrentTexture().createView(),
-        clearValue: { r: 0.8, g: 0.8, b: 0.8, a: 1.0 },
-        loadOp: 'clear',
-        storeOp: 'store',
-      }],
+    const frame = WebGPU.beginRenderPass(this.device, this.context, {
+      r: 0.8,
+      g: 0.8,
+      b: 0.8,
+      a: 1.0,
     });
 
-    this.scene.draw(pass);
-    pass.end();
+    this.scene.draw(frame.pass);
+    WebGPU.endRenderPass(this.device, frame.encoder, frame.pass);
 
-    this.device.queue.submit([encoder.finish()]);
     requestAnimationFrame(this.draw.bind(this));
   }
 }
