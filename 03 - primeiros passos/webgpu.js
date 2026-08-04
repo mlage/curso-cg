@@ -1,82 +1,105 @@
-export default class Shader {
-  static createShader(gl, type, source) {
-    var shader = gl.createShader(type);
-
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      var info = gl.getShaderInfoLog(shader);
-      console.log('Could not compile WebGL program:' + info);
+export default class WebGPU {
+  static async createContext(canvas) {
+    if (!navigator.gpu) {
+      throw new Error('WebGPU não é suportado neste navegador.');
     }
 
-    return shader;
-  }
-
-  static createProgram(gl, vertexShader, fragmentShader) {
-    var program = gl.createProgram();
-
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      var info = gl.getProgramInfoLog(program);
-      console.log('Could not compile WebGL program:' + info);
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+      throw new Error('Não foi possível obter um adaptador WebGPU.');
     }
 
-    return program;
+    const device = await adapter.requestDevice();
+    const context = canvas.getContext('webgpu');
+    const format = navigator.gpu.getPreferredCanvasFormat();
+
+    return { device, context, format };
   }
 
-  static isArrayBuffer(value) {
-    return value && value.buffer instanceof ArrayBuffer && value.byteLength !== undefined;
+  static resizeCanvas(canvas, width, height) {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
   }
 
-  static createBuffer(gl, type, data) {
-    if (data.length == 0)
-      return null;
+  static configureCanvas(context, device, format) {
+    context.configure({
+      device,
+      format,
+      alphaMode: 'opaque',
+    });
+  }
 
-    if (!Shader.isArrayBuffer(data)) {
-      console.warn('Data is not an instance of ArrayBuffer');
-      return null;
-    }
+  static createVertexBuffer(device, data) {
+    const buffer = device.createBuffer({
+      size: data.byteLength,
+      usage: GPUBufferUsage.VERTEX,
+      mappedAtCreation: true,
+    });
 
-    var buffer = gl.createBuffer();
-    gl.bindBuffer(type, buffer);
-    gl.bufferData(type, data, gl.STATIC_DRAW);
+    new Float32Array(buffer.getMappedRange()).set(data);
+    buffer.unmap();
 
     return buffer;
   }
 
-  static createVAO(gl, posAttribLoc, posBuffer, colorAttribLoc = null, colorBuffer = null, normAttribLoc = null, normBuffer = null) {
+  static createPipeline(device, format, vertexShaderSource, fragmentShaderSource) {
+    const vertexModule = device.createShaderModule({ code: vertexShaderSource });
+    const fragmentModule = device.createShaderModule({ code: fragmentShaderSource });
 
-    var vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
+    return device.createRenderPipeline({
+      layout: 'auto',
+      vertex: {
+        module: vertexModule,
+        entryPoint: 'main',
+        buffers: [
+          {
+            arrayStride: 4 * 4,
+            attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x4' }],
+          },
+          {
+            arrayStride: 4 * 4,
+            attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x4' }],
+          },
+        ],
+      },
+      fragment: {
+        module: fragmentModule,
+        entryPoint: 'main',
+        targets: [{ format }],
+      },
+      primitive: {
+        topology: 'triangle-list',
+      },
+    });
+  }
 
-    if (posAttribLoc != null && posAttribLoc != undefined) {
-      gl.enableVertexAttribArray(posAttribLoc);
-      var size = 4;
-      var type = gl.FLOAT;
-      gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-      gl.vertexAttribPointer(posAttribLoc, size, type, false, 0, 0);
+  static beginRenderPass(device, context, clearValue) {
+    const encoder = device.createCommandEncoder();
+    const pass = encoder.beginRenderPass({
+      colorAttachments: [{
+        view: context.getCurrentTexture().createView(),
+        clearValue,
+        loadOp: 'clear',
+        storeOp: 'store',
+      }],
+    });
+
+    return { encoder, pass };
+  }
+
+  static draw(pass, pipeline, vertexBuffers, vertexCount) {
+    pass.setPipeline(pipeline);
+
+    for (const [index, buffer] of vertexBuffers.entries()) {
+      pass.setVertexBuffer(index, buffer);
     }
 
-    if (colorAttribLoc != null && colorAttribLoc != undefined) {
-      gl.enableVertexAttribArray(colorAttribLoc);
-      size = 4;
-      type = gl.FLOAT;
-      gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-      gl.vertexAttribPointer(colorAttribLoc, size, type, false, 0, 0);
-    }
+    pass.draw(vertexCount);
+  }
 
-    if (normAttribLoc != null && normAttribLoc != undefined) {
-      gl.enableVertexAttribArray(normAttribLoc);
-      size = 4;
-      type = gl.FLOAT;
-      gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
-      gl.vertexAttribPointer(normAttribLoc, size, type, false, 0, 0);
-    }
-
-    return vao;
+  static endRenderPass(device, encoder, pass) {
+    pass.end();
+    device.queue.submit([encoder.finish()]);
   }
 }
