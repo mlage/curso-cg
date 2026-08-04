@@ -74,7 +74,7 @@ export default class WebGPU {
     });
   }
 
-  static beginRenderPass(device, context, clearValue) {
+  static render(device, context, clearValue, draw) {
     const encoder = device.createCommandEncoder();
     const pass = encoder.beginRenderPass({
       colorAttachments: [{
@@ -85,7 +85,9 @@ export default class WebGPU {
       }],
     });
 
-    return { encoder, pass };
+    draw(pass);
+    pass.end();
+    device.queue.submit([encoder.finish()]);
   }
 
   static draw(pass, pipeline, vertexBuffers, vertexCount) {
@@ -98,8 +100,4 @@ export default class WebGPU {
     pass.draw(vertexCount);
   }
 
-  static endRenderPass(device, encoder, pass) {
-    pass.end();
-    device.queue.submit([encoder.finish()]);
-  }
 }

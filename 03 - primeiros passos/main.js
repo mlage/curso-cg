@@ -8,7 +8,7 @@ class Scene {
 
     this.positions = new Float32Array([
       0.0, 0.0, 0.0, 1.0,
-      -2.0, 0.0, 0.0, 1.0,
+      -1.0, 0.0, 0.0, 1.0,
       0.0, 1.0, 0.0, 1.0,
     ]);
 
@@ -49,15 +49,11 @@ class Main {
   }
 
   draw() {
-    const frame = WebGPU.beginRenderPass(this.device, this.context, {
-      r: 0.8,
-      g: 0.8,
-      b: 0.8,
-      a: 1.0,
+    WebGPU.render(this.device, this.context, {
+      r: 0.8, g: 0.8, b: 0.8, a: 1.0,
+    }, (pass) => {
+      this.scene.draw(pass);
     });
-
-    this.scene.draw(frame.pass);
-    WebGPU.endRenderPass(this.device, frame.encoder, frame.pass);
 
     requestAnimationFrame(this.draw.bind(this));
   }
