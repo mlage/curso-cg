@@ -27,9 +27,7 @@ class Scene {
 
 class Main {
     async init() {
-        this.gpu = await WebGPU.createCanvas('#glcanvas', 1024, 768, {
-            clearColor: { r: 0.8, g: 0.8, b: 0.8, a: 1.0 },
-        });
+        this.gpu = await WebGPU.createCanvas('#glcanvas', 1024, 768);
         this.scene = new Scene(this.gpu);
     }
 
