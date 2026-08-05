@@ -122,12 +122,13 @@ class Scene {
 
 class Main {
     async init() {
-        this.gpu = await WebGPU.createCanvas('#glcanvas', 1024, 768);
+        this.gpu = await WebGPU.createCanvas('#glcanvas', 1024, 768, {
+            clearColor: { r: 1.0, g: 1.0, b: 1.0, a: 1.0 },
+        });
         this.scene = new Scene(this.gpu);
     }
 
     draw() {
-        this.gpu.clear(1.0, 1.0, 1.0, 1.0);
         this.scene.draw(this.gpu);
         this.gpu.finish();
 
