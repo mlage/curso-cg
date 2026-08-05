@@ -1,12 +1,12 @@
 import vertShaderSrc from './simple.vert.js';
 import fragShaderSrc from './simple.frag.js';
-import WebGPU from './webgpu.js';
+import WebGPU from '../lib/webgpu.js';
 
 class Scene {
     constructor(gpu) {
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc);
 
-        this.triangle = gpu.createTriangle(
+        this.triangle = gpu.createShape([
             [
                 0.0, 0.0, 0.0, 1.0,
                 -1.0, 0.0, 0.0, 1.0,
@@ -17,7 +17,7 @@ class Scene {
                 1.0, 0.0, 0.0, 1.0,
                 0.0, 1.0, 0.0, 1.0,
             ],
-        );
+        ], 3);
     }
 
     draw(gpu) {

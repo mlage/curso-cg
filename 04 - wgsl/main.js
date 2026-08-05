@@ -2,7 +2,7 @@ import uniformsVertShaderSrc from './uniforms.vert.js';
 import uniformsFragShaderSrc from './uniforms.frag.js';
 import builtinVertShaderSrc from './builtin.vert.js';
 import builtinFragShaderSrc from './builtin.frag.js';
-import WebGPU from './webgpu.js';
+import WebGPU from '../lib/webgpu.js';
 
 class Scene {
     constructor(gpu) {
