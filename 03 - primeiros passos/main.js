@@ -32,6 +32,7 @@ class Main {
     }
 
     draw() {
+        this.gpu.start();
         this.scene.draw(this.gpu);
         this.gpu.finish();
 
