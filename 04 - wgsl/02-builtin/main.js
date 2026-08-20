@@ -5,55 +5,41 @@ import WebGPU from '../../lib/webgpu.js';
 class Scene {
     constructor(gpu) {
         this.translate = 0;
-        this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
-            buffers: [
-                {
-                    arrayStride: 4 * 4,
-                    attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x4' }],
-                },
-                {
-                    arrayStride: 4 * 4,
-                    attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x4' }],
-                },
-                {
-                    arrayStride: 2 * 4,
-                    attributes: [{ shaderLocation: 2, offset: 0, format: 'float32x2' }],
-                },
+        this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc);
+
+        this.shape = gpu.createShape([
+            [
+                0.0, 0.0, 0.0, 1.0,
+                -1.0, 0.0, 0.0, 1.0,
+                0.0, 1.0, 0.0, 1.0,
+
+                0.0, 1.0, 0.0, 1.0,
+                0.0, 0.0, 0.0, 1.0,
+                1.0, 0.0, 0.0, 1.0,
+
+                0.0, 0.0, 0.0, 1.0,
+                1.0, 0.0, 0.0, 1.0,
+                0.0, -1.0, 0.0, 1.0,
             ],
-        });
+            [
+                1.0, 0.0, 0.0, 1.0,
+                1.0, 0.0, 0.0, 1.0,
+                1.0, 0.0, 0.0, 1.0,
 
-        const halfSize = 0.18;
-        const circles = [
-            { center: [0.0, 0.0], color: [0.0, 0.0, 1.0, 1.0] },
-            { center: [-1.0, 0.0], color: [1.0, 0.0, 0.0, 1.0] },
-            { center: [0.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
-        ];
+                0.0, 1.0, 0.0, 1.0,
+                0.0, 1.0, 0.0, 1.0,
+                0.0, 1.0, 0.0, 1.0,
 
-        const positions = [];
-        const colors = [];
-        const centers = [];
+                0.0, 0.0, 1.0, 1.0,
+                0.0, 0.0, 1.0, 1.0,
+                0.0, 0.0, 1.0, 1.0,
+            ],
+        ], 9);
 
-        circles.forEach(({ center: [cx, cy], color }) => {
-            const quad = [
-                [cx - halfSize, cy - halfSize],
-                [cx + halfSize, cy - halfSize],
-                [cx - halfSize, cy + halfSize],
-                [cx - halfSize, cy + halfSize],
-                [cx + halfSize, cy - halfSize],
-                [cx + halfSize, cy + halfSize],
-            ];
-
-            quad.forEach(([x, y]) => {
-                positions.push(x, y, 0.0, 1.0);
-                colors.push(...color);
-                centers.push(cx, cy);
-            });
-        });
-
-        this.shape = gpu.createShape([positions, colors, centers], positions.length / 4);
         this.uniformData = new Float32Array([
             0.0, 0.5, 0.0, 0.0,
-            gpu.canvas.width, gpu.canvas.height, 48.0, 0.0,
+            0.25, 0.25, 0.25, 1.0,
+            gpu.canvas.width, gpu.canvas.height, 0.0, 0.0,
         ]);
         this.uniformBuffer = gpu.createUniformBuffer(this.uniformData);
         this.uniformBindGroup = gpu.createUniformBindGroup(this.program, this.uniformBuffer);
