@@ -36,19 +36,17 @@ class Scene {
             ],
         ], 9);
 
-        this.uniformData = new Float32Array([
+        this.uniform = gpu.createUniform(this.program, new Float32Array([
             0.0, 0.5, 0.0, 0.0,
             0.5, 0.5, 0.5, 1.0,
-        ]);
-        this.uniformBuffer = gpu.createUniformBuffer(this.uniformData);
-        this.uniformBindGroup = gpu.createUniformBindGroup(this.program, this.uniformBuffer);
+        ]));
     }
 
     draw(gpu) {
         this.translate += (this.translate < 0.5) ? 0.001 : -0.5;
-        this.uniformData[0] = this.translate;
-        gpu.writeBuffer(this.uniformBuffer, this.uniformData);
-        gpu.draw(this.program, this.shape, [this.uniformBindGroup]);
+        this.uniform.data[0] = this.translate;
+        gpu.writeBuffer(this.uniform.buffer, this.uniform.data);
+        gpu.draw(this.program, this.shape, [this.uniform.bindGroup]);
     }
 }
 
