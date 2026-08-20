@@ -1,14 +1,12 @@
 body {
-    margin: 0;
-    padding: 24px;
-    font-family: sans-serif;
     background-color: rgb(255, 255, 255);
 }
 
-main {
-    max-width: 640px;
-}
-
-a {
-    color: rgb(0, 102, 204);
+#glcanvas {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    width: 1024px;
+    height: 768px;
+    background-color: black;
 }
