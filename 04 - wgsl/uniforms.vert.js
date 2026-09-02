@@ -1,4 +1,5 @@
 export default /* wgsl */ `
+
 struct Uniforms {
   transform : vec4f,
   ambient : vec4f,
