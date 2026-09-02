@@ -12,9 +12,9 @@ import {
 
 class Scene {
     constructor(gpu) {
-        // Evolução do exemplo anterior: em vez de deslocar um triângulo com um vec4,
-        // agora enviamos uma matriz 4x4 para transformar um cubo 3D.
-        this.angle = 0;
+        this.angleY = 0;
+        this.angleZ = 0;
+
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
             cullMode: 'back',
         });
@@ -70,19 +70,21 @@ class Scene {
     }
 
     updateTransform() {
-        this.angle += 0.01;
+        this.angleZ += 0.01;
+        this.angleY += 0.01;
 
-        const rotateY = createRotationYMat4(this.angle);
-        const rotateZ = createRotationZMat4(this.angle);
-        const translate = createTranslationMat4(-0.5, -0.5, -0.5);
-        const scale = createScaleMat4(10, 10, 10);
+        const rotateY = createRotationYMat4(this.angleY);
+        const rotateZ = createRotationZMat4(this.angleZ);
+        const center = createTranslationMat4(-0.05, -0.05, -0.05);
+        const scale = createScaleMat4(5, 5, 5);
+        const translate = createTranslationMat4(0, 0, 0.5);
 
-        // A ordem segue a ideia apresentada em CG:
-        // primeiro escalamos o cubo unitário, depois centralizamos,
-        // e por fim aplicamos as rotações.
-        let model = multiplyMat4(rotateY, rotateZ);
-        model = multiplyMat4(model, translate);
-        model = multiplyMat4(model, scale);
+        let model = createIdentityMat4();
+        model = multiplyMat4(center, model);
+        model = multiplyMat4(rotateY, model);
+        model = multiplyMat4(rotateZ, model);
+        model = multiplyMat4(scale, model);
+        model = multiplyMat4(translate, model);
 
         this.uniform.data.set(model);
     }
