@@ -78,8 +78,13 @@ class Scene {
     createViewMatrix() {
         this.cameraAngle += 0.01;
 
-        // A câmera se move para cima e para baixo, sempre apontando ao cubo.
-        const eye = [0, 0.15 + Math.sin(this.cameraAngle) * 0.1, 0];
+        // A câmera descreve uma órbita ao redor do cubo e sempre aponta ao centro dele.
+        const radius = 0.65;
+        const eye = [
+            Math.sin(this.cameraAngle) * radius,
+            0.2,
+            0.5 - Math.cos(this.cameraAngle) * radius,
+        ];
         const at = [0, 0, 0.5];
         const up = [0, 1, 0];
 
