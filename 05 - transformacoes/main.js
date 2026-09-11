@@ -3,6 +3,7 @@ import fragShaderSrc from './transform.frag.js';
 import WebGPU from '../lib/webgpu.js';
 import {
     createIdentityMat4,
+    createRotationXMat4,
     createRotationYMat4,
     createRotationZMat4,
     createScaleMat4,
@@ -12,6 +13,7 @@ import {
 
 class Scene {
     constructor(gpu) {
+        this.angleX = 0;
         this.angleY = 0;
         this.angleZ = 0;
 
@@ -37,11 +39,11 @@ class Scene {
 
         const faceColors = [
             [1.0, 0.0, 0.0, 1.0],
-            [0.0, 0.0, 1.0, 1.0],
             [0.0, 1.0, 0.0, 1.0],
-            [0.7, 0.7, 1.0, 1.0],
+            [0.0, 0.0, 1.0, 1.0],
             [1.0, 0.7, 0.7, 1.0],
             [0.7, 1.0, 0.7, 1.0],
+            [0.7, 0.7, 1.0, 1.0],
         ];
 
         const positions = [
@@ -64,15 +66,35 @@ class Scene {
             ...vertices[4], ...vertices[6], ...vertices[5],
         ];
 
-        const colors = faceColors.flatMap((faceColor) => Array.from({ length: 6 }, () => faceColor).flat());
+        const colors = [
+            ...faceColors[0], ...faceColors[0], ...faceColors[0],
+            ...faceColors[0], ...faceColors[0], ...faceColors[0],
 
+            ...faceColors[2], ...faceColors[2], ...faceColors[2],
+            ...faceColors[2], ...faceColors[2], ...faceColors[2],
+
+            ...faceColors[1], ...faceColors[1], ...faceColors[1],
+            ...faceColors[1], ...faceColors[1], ...faceColors[1],
+
+            ...faceColors[5], ...faceColors[5], ...faceColors[5],
+            ...faceColors[5], ...faceColors[5], ...faceColors[5],
+
+            ...faceColors[3], ...faceColors[3], ...faceColors[3],
+            ...faceColors[3], ...faceColors[3], ...faceColors[3],
+
+            ...faceColors[4], ...faceColors[4], ...faceColors[4],
+            ...faceColors[4], ...faceColors[4], ...faceColors[4]
+        ];
+        
         return [positions, colors];
     }
 
     updateTransform() {
+        this.angleX += 0.02;
         this.angleZ += 0.01;
         this.angleY += 0.01;
 
+        const rotateX = createRotationXMat4(this.angleX);
         const rotateY = createRotationYMat4(this.angleY);
         const rotateZ = createRotationZMat4(this.angleZ);
         const center = createTranslationMat4(-0.05, -0.05, -0.05);
@@ -81,6 +103,7 @@ class Scene {
 
         let model = createIdentityMat4();
         model = multiplyMat4(center, model);
+        model = multiplyMat4(rotateX, model);
         model = multiplyMat4(rotateY, model);
         model = multiplyMat4(rotateZ, model);
         model = multiplyMat4(scale, model);
