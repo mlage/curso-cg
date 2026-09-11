@@ -18,6 +18,7 @@ class Scene {
         this.angleY = 0;
         this.angleZ = 0;
         this.cameraPos = 0;
+        this.cameraDirection = 1;
 
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
             cullMode: 'back',
@@ -76,10 +77,14 @@ class Scene {
     }
 
     createViewMatrix() {
-        this.cameraPos += 0.01;
-        this.cameraPos = this.cameraPos > 1 ? -1 : this.cameraPos;
+        this.cameraPos += 0.01 * this.cameraDirection;
 
-        // A câmera se move de -1 até 1 no eixo Y, sempre apontando para frente.
+        if (this.cameraPos >= 1 || this.cameraPos <= -1) {
+            this.cameraPos = Math.max(-1, Math.min(1, this.cameraPos));
+            this.cameraDirection *= -1;
+        }
+
+        // A câmera se move de -1 até 1 no eixo Y e inverte a direção nos limites.
         const eye = [0, this.cameraPos, 0.0];
         const at = [0, this.cameraPos, 0.5];
         const up = [0, 1, 0];
