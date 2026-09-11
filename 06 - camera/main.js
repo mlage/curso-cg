@@ -17,7 +17,7 @@ class Scene {
         this.angleX = 0;
         this.angleY = 0;
         this.angleZ = 0;
-        this.cameraAngle = 0;
+        this.cameraPos = 0;
 
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
             cullMode: 'back',
@@ -76,16 +76,12 @@ class Scene {
     }
 
     createViewMatrix() {
-        this.cameraAngle += 0.01;
+        this.cameraPos += 0.01;
+        this.cameraPos = this.cameraPos > 1 ? -1 : this.cameraPos;
 
-        // A câmera descreve uma órbita ao redor do cubo e sempre aponta ao centro dele.
-        const radius = 0.65;
-        const eye = [
-            Math.sin(this.cameraAngle) * radius,
-            0.2,
-            0.5 - Math.cos(this.cameraAngle) * radius,
-        ];
-        const at = [0, 0, 0.5];
+        // A câmera se move de -1 até 1 no eixo Y, sempre apontando para frente.
+        const eye = [0, this.cameraPos, 0.0];
+        const at = [0, this.cameraPos, 0.5];
         const up = [0, 1, 0];
 
         return createLookAtMat4(eye, at, up);
