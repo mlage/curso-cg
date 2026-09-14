@@ -18,6 +18,8 @@ class Scene {
         this.angleY = 0;
         this.angleZ = 0;
         this.cameraPos = 0;
+        this.cameraAngleY = 0;
+
         this.cameraDirection = 1;
 
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
@@ -30,35 +32,72 @@ class Scene {
 
     createCube() {
         const vertices = [
-            [0.0, 0.0, 0.0, 1.0], [0.1, 0.0, 0.0, 1.0],
-            [0.1, 0.0, 0.1, 1.0], [0.0, 0.0, 0.1, 1.0],
-            [0.0, 0.1, 0.0, 1.0], [0.1, 0.1, 0.0, 1.0],
-            [0.1, 0.1, 0.1, 1.0], [0.0, 0.1, 0.1, 1.0],
+            [0.0, 0.0, 0.0, 1.0],
+            [0.1, 0.0, 0.0, 1.0],
+            [0.1, 0.0, 0.1, 1.0],
+            [0.0, 0.0, 0.1, 1.0],
+            [0.0, 0.1, 0.0, 1.0],
+            [0.1, 0.1, 0.0, 1.0],
+            [0.1, 0.1, 0.1, 1.0],
+            [0.0, 0.1, 0.1, 1.0],
         ];
 
         const faceColors = [
-            [1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0],
-            [0.0, 0.0, 1.0, 1.0], [1.0, 0.7, 0.7, 1.0],
-            [0.7, 1.0, 0.7, 1.0], [0.7, 0.7, 1.0, 1.0],
+            [1.0, 0.0, 0.0, 1.0],
+            [0.0, 1.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0, 1.0],
+            [1.0, 0.7, 0.7, 1.0],
+            [0.7, 1.0, 0.7, 1.0],
+            [0.7, 0.7, 1.0, 1.0],
         ];
 
         const positions = [
-            ...vertices[0], ...vertices[3], ...vertices[7], ...vertices[0], ...vertices[7], ...vertices[4],
-            ...vertices[5], ...vertices[1], ...vertices[0], ...vertices[5], ...vertices[0], ...vertices[4],
-            ...vertices[1], ...vertices[2], ...vertices[3], ...vertices[1], ...vertices[3], ...vertices[0],
-            ...vertices[2], ...vertices[6], ...vertices[7], ...vertices[2], ...vertices[7], ...vertices[3],
-            ...vertices[5], ...vertices[6], ...vertices[2], ...vertices[5], ...vertices[2], ...vertices[1],
-            ...vertices[4], ...vertices[7], ...vertices[6], ...vertices[4], ...vertices[6], ...vertices[5],
+            ...vertices[0], ...vertices[3], ...vertices[7],
+            ...vertices[0], ...vertices[7], ...vertices[4],
+
+            ...vertices[5], ...vertices[1], ...vertices[0],
+            ...vertices[5], ...vertices[0], ...vertices[4],
+
+            ...vertices[1], ...vertices[2], ...vertices[3],
+            ...vertices[1], ...vertices[3], ...vertices[0],
+
+            ...vertices[2], ...vertices[6], ...vertices[7],
+            ...vertices[2], ...vertices[7], ...vertices[3],
+
+            ...vertices[5], ...vertices[6], ...vertices[2],
+            ...vertices[5], ...vertices[2], ...vertices[1],
+
+            ...vertices[4], ...vertices[7], ...vertices[6],
+            ...vertices[4], ...vertices[6], ...vertices[5],
         ];
 
-        const colors = faceColors.flatMap((color) => Array(6).fill(color).flat());
+        const colors = [
+            ...faceColors[0], ...faceColors[0], ...faceColors[0],
+            ...faceColors[0], ...faceColors[0], ...faceColors[0],
+
+            ...faceColors[2], ...faceColors[2], ...faceColors[2],
+            ...faceColors[2], ...faceColors[2], ...faceColors[2],
+
+            ...faceColors[1], ...faceColors[1], ...faceColors[1],
+            ...faceColors[1], ...faceColors[1], ...faceColors[1],
+
+            ...faceColors[5], ...faceColors[5], ...faceColors[5],
+            ...faceColors[5], ...faceColors[5], ...faceColors[5],
+
+            ...faceColors[3], ...faceColors[3], ...faceColors[3],
+            ...faceColors[3], ...faceColors[3], ...faceColors[3],
+
+            ...faceColors[4], ...faceColors[4], ...faceColors[4],
+            ...faceColors[4], ...faceColors[4], ...faceColors[4]
+        ];
+
         return [positions, colors];
     }
 
     createModelMatrix() {
-        this.angleX += 0.02;
-        this.angleY += 0.01;
-        this.angleZ += 0.01;
+        this.angleX += 0.01;
+        this.angleY += 0.0;
+        this.angleZ += 0.0;
 
         const center = createTranslationMat4(-0.05, -0.05, -0.05);
         const rotateX = createRotationXMat4(this.angleX);
@@ -92,9 +131,26 @@ class Scene {
         return createLookAtMat4(eye, at, up);
     }
 
+    createViewMatrixOrbit() {
+        this.cameraAngleY += 0.01;
+
+        // A posição da câmera percorre um círculo em torno do centro do cubo.
+        const radius = 0.55;
+        const eye = [
+            Math.sin(this.cameraAngleY) * radius,
+            this.cameraPos,
+            0.5 - Math.cos(this.cameraAngleY) * radius,
+        ];
+        const at = [0, 0, 0.5];
+        const up = [0, 1, 0];
+
+        return createLookAtMat4(eye, at, up);
+    }
+
     draw(gpu) {
         const model = this.createModelMatrix();
         const view = this.createViewMatrix();
+        // const view = this.createViewMatrixOrbit();
 
         // A câmera transforma o objeto já posicionado no mundo: view * model.
         this.uniform.data.set(multiplyMat4(view, model));
