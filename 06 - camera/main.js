@@ -137,9 +137,9 @@ class Scene {
         // A posição da câmera percorre um círculo em torno do centro do cubo.
         const radius = 0.55;
         const eye = [
-            Math.sin(this.cameraAngleY) * radius,
+            Math.cos(this.cameraAngleY) * radius,
             this.cameraPos,
-            0.5 - Math.cos(this.cameraAngleY) * radius,
+            0.5 + Math.sin(this.cameraAngleY) * radius,
         ];
         const at = [0, 0, 0.5];
         const up = [0, 1, 0];
