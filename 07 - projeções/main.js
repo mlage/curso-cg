@@ -7,6 +7,8 @@ import {
     createOrthographicMat4,
     createPerspectiveMat4,
     createRotationXMat4,
+    createRotationYMat4,
+    createRotationZMat4,
     createScaleMat4,
     createTranslationMat4,
     multiplyMat4,
@@ -15,7 +17,8 @@ import {
 class Scene {
     constructor(gpu) {
         this.angleX = 0;
-        this.cameraAngleY = 0;
+        this.angleY = 0;
+        this.angleZ = 0;
         this.usePerspective = true;
 
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
@@ -28,58 +31,92 @@ class Scene {
 
     createCube() {
         const vertices = [
-            [0.0, 0.0, 0.0, 1.0], [0.1, 0.0, 0.0, 1.0],
-            [0.1, 0.0, 0.1, 1.0], [0.0, 0.0, 0.1, 1.0],
-            [0.0, 0.1, 0.0, 1.0], [0.1, 0.1, 0.0, 1.0],
-            [0.1, 0.1, 0.1, 1.0], [0.0, 0.1, 0.1, 1.0],
+            [0.0, 0.0, 0.0, 1.0],
+            [0.1, 0.0, 0.0, 1.0],
+            [0.1, 0.0, 0.1, 1.0],
+            [0.0, 0.0, 0.1, 1.0],
+            [0.0, 0.1, 0.0, 1.0],
+            [0.1, 0.1, 0.0, 1.0],
+            [0.1, 0.1, 0.1, 1.0],
+            [0.0, 0.1, 0.1, 1.0],
         ];
 
         const faceColors = [
-            [1.0, 0.7, 0.7, 1.0], // X- (esquerda): vermelho claro
-            [0.0, 0.0, 1.0, 1.0], // Z- (frente): azul escuro
-            [0.7, 1.0, 0.7, 1.0], // Y- (base): verde claro
-            [0.7, 0.7, 1.0, 1.0], // Z+ (fundo): azul claro
-            [1.0, 0.0, 0.0, 1.0], // X+ (direita): vermelho escuro
-            [0.0, 1.0, 0.0, 1.0], // Y+ (topo): verde escuro
+            [1.0, 0.0, 0.0, 1.0],
+            [0.0, 1.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0, 1.0],
+            [1.0, 0.7, 0.7, 1.0],
+            [0.7, 1.0, 0.7, 1.0],
+            [0.7, 0.7, 1.0, 1.0],
         ];
 
         const positions = [
-            ...vertices[0], ...vertices[3], ...vertices[7], ...vertices[0], ...vertices[7], ...vertices[4],
-            ...vertices[5], ...vertices[1], ...vertices[0], ...vertices[5], ...vertices[0], ...vertices[4],
-            ...vertices[1], ...vertices[2], ...vertices[3], ...vertices[1], ...vertices[3], ...vertices[0],
-            ...vertices[2], ...vertices[6], ...vertices[7], ...vertices[2], ...vertices[7], ...vertices[3],
-            ...vertices[5], ...vertices[6], ...vertices[2], ...vertices[5], ...vertices[2], ...vertices[1],
-            ...vertices[4], ...vertices[7], ...vertices[6], ...vertices[4], ...vertices[6], ...vertices[5],
+            ...vertices[0], ...vertices[3], ...vertices[7],
+            ...vertices[0], ...vertices[7], ...vertices[4],
+
+            ...vertices[5], ...vertices[1], ...vertices[0],
+            ...vertices[5], ...vertices[0], ...vertices[4],
+
+            ...vertices[1], ...vertices[2], ...vertices[3],
+            ...vertices[1], ...vertices[3], ...vertices[0],
+
+            ...vertices[2], ...vertices[6], ...vertices[7],
+            ...vertices[2], ...vertices[7], ...vertices[3],
+
+            ...vertices[5], ...vertices[6], ...vertices[2],
+            ...vertices[5], ...vertices[2], ...vertices[1],
+
+            ...vertices[4], ...vertices[7], ...vertices[6],
+            ...vertices[4], ...vertices[6], ...vertices[5],
         ];
 
-        const colors = faceColors.flatMap((color) => Array(6).fill(color).flat());
+        const colors = [
+            ...faceColors[0], ...faceColors[0], ...faceColors[0],
+            ...faceColors[0], ...faceColors[0], ...faceColors[0],
+
+            ...faceColors[2], ...faceColors[2], ...faceColors[2],
+            ...faceColors[2], ...faceColors[2], ...faceColors[2],
+
+            ...faceColors[1], ...faceColors[1], ...faceColors[1],
+            ...faceColors[1], ...faceColors[1], ...faceColors[1],
+
+            ...faceColors[5], ...faceColors[5], ...faceColors[5],
+            ...faceColors[5], ...faceColors[5], ...faceColors[5],
+
+            ...faceColors[3], ...faceColors[3], ...faceColors[3],
+            ...faceColors[3], ...faceColors[3], ...faceColors[3],
+
+            ...faceColors[4], ...faceColors[4], ...faceColors[4],
+            ...faceColors[4], ...faceColors[4], ...faceColors[4]
+        ];
+
         return [positions, colors];
     }
 
     createModelMatrix() {
         this.angleX += 0.01;
+        this.angleY += 0.0;
+        this.angleZ += 0.0;
 
         const center = createTranslationMat4(-0.05, -0.05, -0.05);
         const rotateX = createRotationXMat4(this.angleX);
+        const rotateY = createRotationYMat4(this.angleY);
+        const rotateZ = createRotationZMat4(this.angleZ);
         const scale = createScaleMat4(5, 5, 5);
         const translate = createTranslationMat4(0, 0, 0.5);
 
         let model = createIdentityMat4();
         model = multiplyMat4(center, model);
         model = multiplyMat4(rotateX, model);
+        model = multiplyMat4(rotateY, model);
+        model = multiplyMat4(rotateZ, model);
         model = multiplyMat4(scale, model);
         return multiplyMat4(translate, model);
     }
 
     createViewMatrix() {
-        this.cameraAngleY += 0.01;
-
-        const radius = 2.5;
-        const eye = [
-            Math.cos(this.cameraAngleY) * radius,
-            0,
-            0.5 + Math.sin(this.cameraAngleY) * radius,
-        ];
+        // A câmera ocupa o canto superior direito da frente do volume de visão.
+        const eye = [1, 1, -1];
         const at = [0, 0, 0.5];
         const up = [0, 1, 0];
 
