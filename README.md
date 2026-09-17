@@ -2,7 +2,8 @@
 
 Códigos utilizados no curso de Computação Gráfica oferecido pelo prof. Marcos Lage para o curso de Ciência da Computação do Instituto de Computação da UFF.
 
-## Prof. Marcos Lagewebsite: www.ic.uff.br/~mlage
+## Prof. Marcos Lage
+website: www.ic.uff.br/~mlage
 e-mail: mlage@ic.uff.br
 
 ## Aulas
