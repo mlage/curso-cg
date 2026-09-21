@@ -3,6 +3,7 @@ struct Uniforms {
   model : mat4x4f,
   view : mat4x4f,
   projection : mat4x4f,
+  normalMatrix : mat4x4f,
   lightPosition : vec4f,
   ambient : vec4f,
   diffuse : vec4f,
@@ -29,9 +30,8 @@ fn main(
   let viewPosition = modelView * position;
 
   // Normal do vértice no sistema da câmera.
-  // A inversa transposta preserva a perpendicularidade da normal mesmo com escala não uniforme.
-  let normalMatrix = transpose(inverse(modelView));
-  let viewNormal = normalize((normalMatrix * normal).xyz);
+  // A matriz normal é a inversa transposta de modelView, calculada em JavaScript.
+  let viewNormal = normalize((uniforms.normalMatrix * normal).xyz);
 
   // Posição da luz no sistema da câmera.
   let viewLightPosition = uniforms.view * uniforms.lightPosition;
