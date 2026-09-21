@@ -28,9 +28,10 @@ fn main(
   // Posição do vértice no sistema da câmera.
   let viewPosition = modelView * position;
 
-  // Normal do vértice no sistema da câmera. Como o exemplo usa escala uniforme,
-  // modelView * normal preserva a direção após a normalização.
-  let viewNormal = normalize((modelView * normal).xyz);
+  // Normal do vértice no sistema da câmera.
+  // A inversa transposta preserva a perpendicularidade da normal mesmo com escala não uniforme.
+  let normalMatrix = transpose(inverse(modelView));
+  let viewNormal = normalize((normalMatrix * normal).xyz);
 
   // Posição da luz no sistema da câmera.
   let viewLightPosition = uniforms.view * uniforms.lightPosition;
