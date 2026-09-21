@@ -149,8 +149,8 @@ class Scene {
 
     draw(gpu) {
         const model = this.createModelMatrix();
-        const view = this.createViewMatrix();
-        // const view = this.createViewMatrixOrbit();
+        // const view = this.createViewMatrix();
+        const view = this.createViewMatrixOrbit();
 
         // A câmera transforma o objeto já posicionado no mundo: view * model.
         this.uniform.data.set(multiplyMat4(view, model));

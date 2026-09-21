@@ -19,7 +19,7 @@ class Scene {
         this.angleX = 0;
         this.angleY = 0;
         this.angleZ = 0;
-        this.usePerspective = true;
+        this.usePerspective = false;
 
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
             cullMode: 'back',
