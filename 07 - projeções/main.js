@@ -120,7 +120,7 @@ class Scene {
         const at = [0, 0, 0.5];
         const up = [0, 1, 0];
 
-        return createLookAtMat4(eye, at, up);
+        return createLookAtMat4(eye, at, up, true);
     }
 
     createProjectionMatrix() {
