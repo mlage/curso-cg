@@ -4,6 +4,7 @@ import WebGPU from '../lib/webgpu.js';
 import {
     createIdentityMat4,
     createLookAtMat4,
+    createNormalMat4,
     createPerspectiveMat4,
     createRotationXMat4,
     createRotationYMat4,
@@ -135,64 +136,9 @@ class Scene {
         return createPerspectiveMat4(Math.PI / 3, aspect, 0.1, 10);
     }
 
-    createNormalMatrix(modelView) {
-        const m00 = modelView[0], m01 = modelView[1], m02 = modelView[2], m03 = modelView[3];
-        const m10 = modelView[4], m11 = modelView[5], m12 = modelView[6], m13 = modelView[7];
-        const m20 = modelView[8], m21 = modelView[9], m22 = modelView[10], m23 = modelView[11];
-        const m30 = modelView[12], m31 = modelView[13], m32 = modelView[14], m33 = modelView[15];
-
-        const b00 = m00 * m11 - m01 * m10;
-        const b01 = m00 * m12 - m02 * m10;
-        const b02 = m00 * m13 - m03 * m10;
-        const b03 = m01 * m12 - m02 * m11;
-        const b04 = m01 * m13 - m03 * m11;
-        const b05 = m02 * m13 - m03 * m12;
-        const b06 = m20 * m31 - m21 * m30;
-        const b07 = m20 * m32 - m22 * m30;
-        const b08 = m20 * m33 - m23 * m30;
-        const b09 = m21 * m32 - m22 * m31;
-        const b10 = m21 * m33 - m23 * m31;
-        const b11 = m22 * m33 - m23 * m32;
-
-        const determinant = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
-
-        if (determinant === 0) {
-            throw new Error('Model-view matrix must be invertible to transform normals.');
-        }
-
-        const invDet = 1 / determinant;
-
-        const inverse = new Float32Array([
-            (m11 * b11 - m12 * b10 + m13 * b09) * invDet,
-            (m12 * b08 - m10 * b11 - m13 * b07) * invDet,
-            (m10 * b10 - m11 * b08 + m13 * b06) * invDet,
-            (m11 * b07 - m10 * b09 - m12 * b06) * invDet,
-            (m02 * b10 - m01 * b11 - m03 * b09) * invDet,
-            (m00 * b11 - m02 * b08 + m03 * b07) * invDet,
-            (m01 * b08 - m00 * b10 - m03 * b06) * invDet,
-            (m00 * b09 - m01 * b07 + m02 * b06) * invDet,
-            (m31 * b05 - m32 * b04 + m33 * b03) * invDet,
-            (m32 * b02 - m30 * b05 - m33 * b01) * invDet,
-            (m30 * b04 - m31 * b02 + m33 * b00) * invDet,
-            (m31 * b01 - m30 * b03 - m32 * b00) * invDet,
-            (m22 * b04 - m21 * b05 - m23 * b03) * invDet,
-            (m20 * b05 - m22 * b02 + m23 * b01) * invDet,
-            (m21 * b02 - m20 * b04 - m23 * b00) * invDet,
-            (m20 * b03 - m21 * b01 + m22 * b00) * invDet,
-        ]);
-
-        // Matriz normal: transpose(inverse(modelView)).
-        return new Float32Array([
-            inverse[0], inverse[4], inverse[8], inverse[12],
-            inverse[1], inverse[5], inverse[9], inverse[13],
-            inverse[2], inverse[6], inverse[10], inverse[14],
-            inverse[3], inverse[7], inverse[11], inverse[15],
-        ]);
-    }
-
     updateUniform(model, view, projection) {
         const modelView = multiplyMat4(view, model);
-        const normalMatrix = this.createNormalMatrix(modelView);
+        const normalMatrix = createNormalMat4(modelView);
 
         this.uniform.data.set(model, 0);
         this.uniform.data.set(view, 16);
