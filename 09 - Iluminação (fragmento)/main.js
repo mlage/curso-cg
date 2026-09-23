@@ -100,11 +100,11 @@ class Mesh {
 class Scene {
     constructor(gpu) {
         this.light = {
-            position: [-20, 20, -20, 1],
-            ambient: [1, 1, 1, 0.2],
-            diffuse: [1, 1, 1, 0.5],
-            specular: [1, 1, 1, 0.4],
-            params: [5, 0, 0, 0],
+            position: [-2, 3, 4, 1],
+            ambient: [1, 1, 1, 0.15],
+            diffuse: [1, 1, 1, 0.65],
+            specular: [1, 1, 1, 0.35],
+            params: [24, 0, 0, 0],
         };
 
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
@@ -132,7 +132,7 @@ class Scene {
     }
 
     createViewMatrix() {
-        const eye = [1, 1, 1];
+        const eye = [0, 1.5, 5];
         const at = [0, 0, 0];
         const up = [0, 1, 0];
 
@@ -141,7 +141,7 @@ class Scene {
 
     createProjectionMatrix() {
         const aspect = 1024 / 768;
-        return createPerspectiveMat4(Math.PI / 2, aspect, 0.1, 10);
+        return createPerspectiveMat4(Math.PI / 4, aspect, 0.1, 20);
     }
 
     draw(gpu) {
