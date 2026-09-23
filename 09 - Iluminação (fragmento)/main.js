@@ -14,12 +14,80 @@ import {
 } from '../lib/utils.js';
 
 class Mesh {
-    constructor(gpu, program, shape, delta) {
+    constructor(gpu, program, delta) {
         this.angle = 0;
         this.delta = delta;
         this.program = program;
-        this.shape = shape;
+        this.shape = gpu.createShape(this.createCube());
         this.uniform = gpu.createUniform(program, new Float32Array(84));
+    }
+
+    createCube() {
+        const vertices = [
+            [0.0, 0.0, 0.0, 1.0],
+            [0.1, 0.0, 0.0, 1.0],
+            [0.1, 0.0, 0.1, 1.0],
+            [0.0, 0.0, 0.1, 1.0],
+            [0.0, 0.1, 0.0, 1.0],
+            [0.1, 0.1, 0.0, 1.0],
+            [0.1, 0.1, 0.1, 1.0],
+            [0.0, 0.1, 0.1, 1.0],
+        ];
+
+        const indices = [
+            0, 3, 7, 0, 7, 4,
+            5, 1, 0, 5, 0, 4,
+            1, 2, 3, 1, 3, 0,
+            2, 6, 7, 2, 7, 3,
+            5, 6, 2, 5, 2, 1,
+            4, 7, 6, 4, 6, 5,
+        ];
+
+        const colors = [
+            [1.0, 0.0, 0.0, 1.0],
+            [1.0, 0.5, 0.5, 1.0],
+            [1.0, 0.5, 0.5, 1.0],
+            [1.0, 0.5, 0.5, 1.0],
+            [1.0, 0.5, 0.5, 1.0],
+            [1.0, 0.5, 0.5, 1.0],
+            [1.0, 0.5, 0.5, 1.0],
+            [1.0, 0.5, 0.5, 1.0],
+        ];
+
+        return {
+            buffers: [
+                vertices.flat(),
+                colors.flat(),
+                this.calculateNormals(vertices, indices).flat(),
+            ],
+            indices,
+            indexFormat: 'uint16',
+            vertexCount: vertices.length,
+        };
+    }
+
+    calculateNormals(vertices, indices) {
+        const normals = vertices.map(() => [0, 0, 0, 0]);
+
+        for (let i = 0; i < indices.length; i += 3) {
+            const a = indices[i];
+            const b = indices[i + 1];
+            const c = indices[i + 2];
+            const normal = calculateTriangleNormal(vertices[a], vertices[b], vertices[c]);
+
+            for (const index of [a, b, c]) {
+                normals[index][0] += normal[0];
+                normals[index][1] += normal[1];
+                normals[index][2] += normal[2];
+            }
+        }
+
+        return normals.map((normal) => {
+            const length = Math.hypot(normal[0], normal[1], normal[2]);
+            return length === 0
+                ? [0, 0, 0, 0]
+                : [normal[0] / length, normal[1] / length, normal[2] / length, 0];
+        });
     }
 
     createModelMatrix() {
@@ -89,79 +157,10 @@ class Scene {
             ],
         });
 
-        const shape = gpu.createShape(this.createCube());
         this.meshes = [
-            new Mesh(gpu, this.program, shape, 1),
-            new Mesh(gpu, this.program, shape, -1),
+            new Mesh(gpu, this.program, 1),
+            new Mesh(gpu, this.program, -1),
         ];
-    }
-
-    createCube() {
-        const vertices = [
-            [0.0, 0.0, 0.0, 1.0],
-            [0.1, 0.0, 0.0, 1.0],
-            [0.1, 0.0, 0.1, 1.0],
-            [0.0, 0.0, 0.1, 1.0],
-            [0.0, 0.1, 0.0, 1.0],
-            [0.1, 0.1, 0.0, 1.0],
-            [0.1, 0.1, 0.1, 1.0],
-            [0.0, 0.1, 0.1, 1.0],
-        ];
-
-        const indices = [
-            0, 3, 7, 0, 7, 4,
-            5, 1, 0, 5, 0, 4,
-            1, 2, 3, 1, 3, 0,
-            2, 6, 7, 2, 7, 3,
-            5, 6, 2, 5, 2, 1,
-            4, 7, 6, 4, 6, 5,
-        ];
-
-        const colors = [
-            [1.0, 0.0, 0.0, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-        ];
-
-        return {
-            buffers: [
-                vertices.flat(),
-                colors.flat(),
-                this.calculateNormals(vertices, indices).flat(),
-            ],
-            indices,
-            indexFormat: 'uint16',
-            vertexCount: vertices.length,
-        };
-    }
-
-    calculateNormals(vertices, indices) {
-        const normals = vertices.map(() => [0, 0, 0, 0]);
-
-        for (let i = 0; i < indices.length; i += 3) {
-            const a = indices[i];
-            const b = indices[i + 1];
-            const c = indices[i + 2];
-            const normal = calculateTriangleNormal(vertices[a], vertices[b], vertices[c]);
-
-            for (const index of [a, b, c]) {
-                normals[index][0] += normal[0];
-                normals[index][1] += normal[1];
-                normals[index][2] += normal[2];
-            }
-        }
-
-        return normals.map((normal) => {
-            const length = Math.hypot(normal[0], normal[1], normal[2]);
-            return length === 0
-                ? [0, 0, 0, 0]
-                : [normal[0] / length, normal[1] / length, normal[2] / length, 0];
-        });
     }
 
     createViewMatrix() {
