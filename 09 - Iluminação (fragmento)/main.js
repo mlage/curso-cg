@@ -13,9 +13,10 @@ import {
 } from '../lib/utils.js';
 
 class Mesh {
-    constructor(gpu, program, delta) {
+    constructor(gpu, program, position, color) {
         this.angle = 0;
-        this.delta = delta;
+        this.position = position;
+        this.color = color;
         this.program = program;
         this.shape = gpu.createShape(this.createCube(), 36);
         this.uniform = gpu.createUniform(program, new Float32Array(84));
@@ -45,12 +46,10 @@ class Mesh {
         const positions = [];
         const colors = [];
         const normals = [];
-        const color = [1.0, 0.5, 0.5, 1.0];
-
         for (const face of faces) {
             for (const vertex of face.vertices) {
                 positions.push(...vertices[vertex]);
-                colors.push(...color);
+                colors.push(...this.color);
                 normals.push(...face.normal);
             }
         }
@@ -64,7 +63,7 @@ class Mesh {
         const scale = createScaleMat4(5, 5, 5);
         const center = createTranslationMat4(-0.25, -0.25, -0.25);
         const rotate = createRotationYMat4(this.angle);
-        const translate = createTranslationMat4(this.delta, 0, 0);
+        const translate = createTranslationMat4(...this.position);
 
         let model = createIdentityMat4();
         model = multiplyMat4(scale, model);
@@ -126,8 +125,10 @@ class Scene {
         });
 
         this.meshes = [
-            new Mesh(gpu, this.program, 1),
-            new Mesh(gpu, this.program, -1),
+            // Mais próximo da câmera, no sentido positivo de Z.
+            new Mesh(gpu, this.program, [-0.45, 0, 1.25], [1.0, 0.1, 0.1, 1.0]),
+            // Mais distante da câmera, no sentido negativo de Z.
+            new Mesh(gpu, this.program, [0.45, 0, -1.25], [0.1, 0.3, 1.0, 1.0]),
         ];
     }
 
