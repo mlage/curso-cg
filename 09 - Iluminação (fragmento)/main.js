@@ -2,7 +2,6 @@ import vertShaderSrc from './illumination.vert.js';
 import fragShaderSrc from './illumination.frag.js';
 import WebGPU from '../lib/webgpu.js';
 import {
-    calculateTriangleNormal,
     createIdentityMat4,
     createLookAtMat4,
     createNormalMat4,
@@ -18,7 +17,7 @@ class Mesh {
         this.angle = 0;
         this.delta = delta;
         this.program = program;
-        this.shape = gpu.createShape(this.createCube());
+        this.shape = gpu.createShape(this.createCube(), 36);
         this.uniform = gpu.createUniform(program, new Float32Array(84));
     }
 
@@ -34,60 +33,29 @@ class Mesh {
             [0.0, 0.1, 0.1, 1.0],
         ];
 
-        const indices = [
-            0, 3, 7, 0, 7, 4,
-            5, 1, 0, 5, 0, 4,
-            1, 2, 3, 1, 3, 0,
-            2, 6, 7, 2, 7, 3,
-            5, 6, 2, 5, 2, 1,
-            4, 7, 6, 4, 6, 5,
+        const faces = [
+            { vertices: [0, 3, 7, 0, 7, 4], normal: [-1, 0, 0, 0] },
+            { vertices: [5, 1, 0, 5, 0, 4], normal: [0, 0, -1, 0] },
+            { vertices: [1, 2, 3, 1, 3, 0], normal: [0, -1, 0, 0] },
+            { vertices: [2, 6, 7, 2, 7, 3], normal: [0, 0, 1, 0] },
+            { vertices: [5, 6, 2, 5, 2, 1], normal: [1, 0, 0, 0] },
+            { vertices: [4, 7, 6, 4, 6, 5], normal: [0, 1, 0, 0] },
         ];
 
-        const colors = [
-            [1.0, 0.0, 0.0, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-            [1.0, 0.5, 0.5, 1.0],
-        ];
+        const positions = [];
+        const colors = [];
+        const normals = [];
+        const color = [1.0, 0.5, 0.5, 1.0];
 
-        return {
-            buffers: [
-                vertices.flat(),
-                colors.flat(),
-                this.calculateNormals(vertices, indices).flat(),
-            ],
-            indices,
-            indexFormat: 'uint16',
-            vertexCount: vertices.length,
-        };
-    }
-
-    calculateNormals(vertices, indices) {
-        const normals = vertices.map(() => [0, 0, 0, 0]);
-
-        for (let i = 0; i < indices.length; i += 3) {
-            const a = indices[i];
-            const b = indices[i + 1];
-            const c = indices[i + 2];
-            const normal = calculateTriangleNormal(vertices[a], vertices[b], vertices[c]);
-
-            for (const index of [a, b, c]) {
-                normals[index][0] += normal[0];
-                normals[index][1] += normal[1];
-                normals[index][2] += normal[2];
+        for (const face of faces) {
+            for (const vertex of face.vertices) {
+                positions.push(...vertices[vertex]);
+                colors.push(...color);
+                normals.push(...face.normal);
             }
         }
 
-        return normals.map((normal) => {
-            const length = Math.hypot(normal[0], normal[1], normal[2]);
-            return length === 0
-                ? [0, 0, 0, 0]
-                : [normal[0] / length, normal[1] / length, normal[2] / length, 0];
-        });
+        return [positions, colors, normals];
     }
 
     createModelMatrix() {
