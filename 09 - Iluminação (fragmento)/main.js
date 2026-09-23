@@ -133,7 +133,7 @@ class Scene {
     }
 
     createViewMatrix() {
-        const eye = [0, 1.2, 4];
+        const eye = [0, 1.2, 3];
         const at = [0, 0, 0];
         const up = [0, 1, 0];
 
