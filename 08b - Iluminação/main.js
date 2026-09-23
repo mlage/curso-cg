@@ -60,7 +60,7 @@ class Scene {
             [0.0, 0.1, 0.1, 1.0],
         ];
 
-        const indexBuffer = [
+        const indices = [
             0, 3, 7, 0, 7, 4,
             5, 1, 0, 5, 0, 4,
             1, 2, 3, 1, 3, 0,
@@ -84,9 +84,9 @@ class Scene {
             buffers: [
                 vertices.flat(),
                 colors.flat(),
-                this.calculateNormals(vertices, indexBuffer).flat(),
+                this.calculateNormals(vertices, indices).flat(),
             ],
-            indexBuffer,
+            indices,
             indexFormat: 'uint16',
             vertexCount: vertices.length,
         };
