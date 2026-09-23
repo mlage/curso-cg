@@ -126,9 +126,9 @@ class Scene {
 
         this.meshes = [
             // Mais próximo da câmera, no sentido positivo de Z.
-            new Mesh(gpu, this.program, [-0.45, 0, 1.25], [1.0, 0.1, 0.1, 1.0]),
+            new Mesh(gpu, this.program, [-0.2, 0.35, 1.25], [1.0, 0.1, 0.1, 1.0]),
             // Mais distante da câmera, no sentido negativo de Z.
-            new Mesh(gpu, this.program, [0.45, 0, -1.25], [0.1, 0.3, 1.0, 1.0]),
+            new Mesh(gpu, this.program, [0.15, 0, -1.25], [0.1, 0.3, 1.0, 1.0]),
         ];
     }
 
