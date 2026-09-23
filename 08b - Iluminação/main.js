@@ -2,6 +2,7 @@ import vertShaderSrc from './illumination.vert.js';
 import fragShaderSrc from './illumination.frag.js';
 import WebGPU from '../lib/webgpu.js';
 import {
+    calculateTriangleNormal,
     createIdentityMat4,
     createLookAtMat4,
     createNormalMat4,
@@ -99,7 +100,7 @@ class Scene {
             const a = indices[i];
             const b = indices[i + 1];
             const c = indices[i + 2];
-            const normal = this.calculateTriangleNormal(vertices[a], vertices[b], vertices[c]);
+            const normal = calculateTriangleNormal(vertices[a], vertices[b], vertices[c]);
 
             for (const index of [a, b, c]) {
                 normals[index][0] += normal[0];
@@ -116,20 +117,6 @@ class Scene {
         });
     }
 
-    calculateTriangleNormal(a, b, c) {
-        const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
-        const ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
-        const normal = [
-            ab[1] * ac[2] - ab[2] * ac[1],
-            ab[2] * ac[0] - ab[0] * ac[2],
-            ab[0] * ac[1] - ab[1] * ac[0],
-        ];
-        const length = Math.hypot(normal[0], normal[1], normal[2]);
-
-        return length === 0
-            ? [0, 0, 0]
-            : [normal[0] / length, normal[1] / length, normal[2] / length];
-    }
 
     createModelMatrix() {
         this.angleX += 0.01;
