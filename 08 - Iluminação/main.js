@@ -144,6 +144,7 @@ class Scene {
         this.uniform.data.set(view, 16);
         this.uniform.data.set(projection, 32);
         this.uniform.data.set(normalMatrix, 48);
+
         this.uniform.data.set(this.lightPosition, 64);
         this.uniform.data.set(this.ambient, 68);
         this.uniform.data.set(this.diffuse, 72);
