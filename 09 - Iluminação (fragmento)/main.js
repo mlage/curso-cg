@@ -97,7 +97,7 @@ class Mesh {
 }
 
 class Scene {
-    constructor(gpu) {
+    constructor(gpu) { 
         this.light = {
             position: [-2, 3, 4, 1],
             ambient: [1, 1, 1, 0.15],
