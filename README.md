@@ -11,7 +11,7 @@ e-mail: mlage@ic.uff.br
 - `10 - half-edge/main.html`: indexed cubes built through the original half-edge data structure, with smooth vertex normals.
 - `11 - half-edge (file)/main.html`: asynchronous file loading and the Spot model (2,930 vertices and 5,856 triangles).
 
-Both examples retain example 09's WebGPU wrapper, WGSL fragment lighting, depth testing, back-face culling, and rotating meshes. `lib/half-edge.js` preserves the legacy topology API and area-weighted normal accumulation; vertex normals are normalized in the fragment shader. The unfinished `estrela` exercise is unchanged.
+Both examples retain example 09's WebGPU wrapper, WGSL fragment lighting, depth testing, back-face culling, and rotating meshes. The cubes use teal and copper materials, and Spot uses teal; ambient and diffuse lighting are tinted by the material color, with restrained white specular highlights. `lib/half-edge.js` preserves the legacy topology API and area-weighted normal accumulation; vertex normals are normalized in the fragment shader. The unfinished `estrela` exercise is unchanged.
 
 Serve the repository over HTTP (for example, `python3 -m http.server 8000`), then open either page on localhost in a WebGPU-enabled browser. No dependencies or build step are required.
 

@@ -12,12 +12,15 @@ import {
 } from '../lib/utils.js';
 
 class Mesh {
-    constructor(gpu, program, position, coords, indices) {
+    constructor(gpu, program, position, coords, indices, color) {
         this.angle = 0;
         this.position = position;
         this.program = program;
         this.heds = new HalfEdgeDS();
         this.heds.build(coords, indices);
+        for (const vertex of this.heds.vertices) {
+            vertex.color = color;
+        }
         const [positions, colors, normals, triangles] = this.heds.getVBOs();
         this.shape = gpu.createShape({
             buffers: [positions, colors, normals],
@@ -63,10 +66,10 @@ class Scene {
     constructor(gpu) {
         this.light = {
             position: [-2, 3, 4, 1],
-            ambient: [1, 1, 1, 0.15],
-            diffuse: [1, 1, 1, 0.65],
-            specular: [1, 1, 1, 0.35],
-            params: [24, 0, 0, 0],
+            ambient: [1, 1, 1, 0.25],
+            diffuse: [1, 1, 1, 0.75],
+            specular: [1, 1, 1, 0.2],
+            params: [48, 0, 0, 0],
         };
 
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
@@ -100,8 +103,8 @@ class Scene {
             5, 6, 2, 5, 2, 1, 4, 7, 6, 4, 6, 5,
         ];
         this.meshes = [
-            new Mesh(gpu, this.program, [-0.65, 0, 0], coords, indices),
-            new Mesh(gpu, this.program, [0.65, 0, 0], coords, indices),
+            new Mesh(gpu, this.program, [-0.65, 0, 0], coords, indices, [0.08, 0.65, 0.7, 1]),
+            new Mesh(gpu, this.program, [0.65, 0, 0], coords, indices, [0.9, 0.4, 0.18, 1]),
         ];
     }
 

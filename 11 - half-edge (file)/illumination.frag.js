@@ -28,11 +28,13 @@ fn main(
   let halfVector = normalize(lightDir + cameraDir);
   let specularFactor = pow(max(0.0, dot(halfVector, normal)), uniforms.lightParams.x);
 
-  let ambientColor = uniforms.ambient.a * uniforms.ambient;
-  let diffuseColor = diffuseFactor * uniforms.diffuse.a * uniforms.diffuse;
-  let specularColor = specularFactor * uniforms.specular.a * uniforms.specular;
-  let litColor = 0.25 * color + 0.75 * (ambientColor + diffuseColor + specularColor);
+  // Ambient and diffuse light retain the material color; highlights stay white.
+  let ambientColor = uniforms.ambient.a * uniforms.ambient.rgb * color.rgb;
+  let diffuseColor = diffuseFactor * uniforms.diffuse.a * uniforms.diffuse.rgb * color.rgb;
+  let specularColor = select(vec3f(0.0),
+    specularFactor * uniforms.specular.a * uniforms.specular.rgb, diffuseFactor > 0.0);
+  let litColor = ambientColor + diffuseColor + specularColor;
 
-  return vec4f(litColor.rgb, 1.0);
+  return vec4f(litColor, 1.0);
 }
 `;
