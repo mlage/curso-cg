@@ -3,25 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Marching Squares</title>
+    <title>Implicit and Parametric Curves</title>
     <link rel="stylesheet" href="main.css">
 </head>
 <body>
     <div class="controls">
-        <label>Implicit curve
+        <label>Curve
             <select id="curve">
-                <option value="heart">Heart</option>
-                <option value="circle">Circle</option>
-                <option value="lemniscate">Lemniscate</option>
-                <option value="clover">Four-leaf clover</option>
-                <option value="cassini">Cassini ovals</option>
-                <option value="waves">Trigonometric waves</option>
-                <option value="union">Two circles: union (A or B)</option>
-                <option value="intersection">Two circles: intersection (A and B)</option>
-                <option value="difference">Two circles: difference (A minus B)</option>
+                <optgroup label="Implicit curves (Marching Squares)">
+                    <option value="heart">Heart</option>
+                    <option value="circle">Circle</option>
+                    <option value="lemniscate">Lemniscate</option>
+                    <option value="clover">Four-leaf clover</option>
+                    <option value="cassini">Cassini ovals</option>
+                    <option value="waves">Trigonometric waves</option>
+                    <option value="union">Two circles: union (A or B)</option>
+                    <option value="intersection">Two circles: intersection (A and B)</option>
+                    <option value="difference">Two circles: difference (A minus B)</option>
+                </optgroup>
+                <optgroup label="Parametric curves">
+                    <option value="parametricCircle">Circle</option>
+                    <option value="ellipse">Ellipse</option>
+                    <option value="spiral">Spiral</option>
+                    <option value="lissajous">Lissajous</option>
+                    <option value="parametricHeart">Heart</option>
+                </optgroup>
             </select>
         </label>
-        <label>Grid resolution
+        <label><span id="sampling-label">Grid resolution</span>
             <select id="resolution">
                 <option>16</option>
                 <option>32</option>
@@ -33,7 +42,7 @@
         </label>
         <span id="status" role="status"></span>
     </div>
-    <canvas id="glcanvas" aria-label="Implicit planar curve rendered with Marching Squares"></canvas>
+    <canvas id="glcanvas" aria-label="Implicit or parametric planar curve"></canvas>
     <script src="main.js" type="module"></script>
 </body>
 </html>

@@ -19,7 +19,7 @@ Serve the repository over HTTP (for example, `python3 -m http.server 8000`), the
 
 Spot is by [Keenan Crane](https://www.cs.cmu.edu/~kmcrane/Projects/ModelRepository/#spot), available under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). The triangle mesh was obtained from the [common-3d-test-models mirror](https://github.com/alecjacobson/common-3d-test-models/blob/master/data/spot.obj). Geometry is included locally; the examples do not need external downloads at runtime.
 
-## Marching Squares: planar implicit curves
+## Planar implicit and parametric curves
 
 Open `12 - marching squares/main.html` using the same HTTP server and a WebGPU-enabled browser. This independent example keeps the existing `10 - half-edge` folder unchanged and reuses `lib/webgpu.js`, with its own local shaders (`simple.vert.js` and `simple.frag.js`) and no dependencies on other example folders. No half-edges, 3D models, lighting, or depth testing are needed.
 
@@ -38,6 +38,22 @@ const segments = marchingSquares(
 ```
 
 The function extracts the zero contour and returns a `Float32Array` containing independent segments as `[x1, y1, x2, y2, ...]` in domain coordinates. It samples each grid vertex once, interpolates edge crossings linearly, and resolves ambiguous cells using the bilinear asymptotic decider (determinant ties consistently pair bottom/right and top/left). Exact zeros count as nonnegative; zero-length segments are omitted. An identically zero field has no unique curve and returns no segments. Use continuous, finite-valued fields; features smaller than a cell can be missed. Rendering preserves the domain's aspect ratio and redraws only when controls change.
+
+### Parametric sampling
+
+The same page also renders parametric circles, ellipses, spirals, Lissajous curves, and hearts. Choose an example from the **Parametric curves** group; the grid control becomes a segment-count control. Add examples to `parametricCurves` in `12 - marching squares/main.js`, specifying `curve(t) = [x, y]`, `minT`, and `maxT`.
+
+`12 - marching squares/parametric-curve.js` handles sampling separately from rendering:
+
+```js
+const segments = sampleParametricCurve(
+    (t) => [1.5 * Math.cos(t), 0.75 * Math.sin(t)],
+    0, 2 * Math.PI, // Parameter interval, including both endpoints.
+    128, // Number of line segments; evaluates the curve 129 times.
+);
+```
+
+It returns the same packed `Float32Array` format as Marching Squares, so both samplers share the existing line renderer and local shaders. Sampling uses uniform steps in the parameter, not uniform arc length. Open curves are not closed automatically; for a closed curve, choose an interval whose endpoints coincide. Functions must be continuous and return two finite coordinates. The displayed domain remains `[-2, 2] × [-1.5, 1.5]`; change `Scene.bounds` to accommodate other examples.
 
 ## Aulas
 Segundas e Quartas de 11 às 13h.
