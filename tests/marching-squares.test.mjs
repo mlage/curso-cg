@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { marchingSquares } from '../10 - marching squares/marching-squares.js';
+import { marchingSquares } from '../12 - marching squares/marching-squares.js';
 
 const unit = { minX: 0, maxX: 1, minY: 0, maxY: 1 };
 

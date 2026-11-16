@@ -23,11 +23,11 @@ Run the topology and file-loading tests with `node --test tests/half-edge.test.m
 
 ## Marching Squares: planar implicit curves
 
-Open `10 - marching squares/main.html` using the same HTTP server and a WebGPU-enabled browser. This independent example keeps the existing `10 - half-edge` folder unchanged and reuses `lib/webgpu.js` and example 03's basic shaders. No half-edges, 3D models, lighting, or depth testing are needed.
+Open `12 - marching squares/main.html` using the same HTTP server and a WebGPU-enabled browser. This independent example keeps the existing `10 - half-edge` folder unchanged and reuses `lib/webgpu.js` and example 03's basic shaders. No half-edges, 3D models, lighting, or depth testing are needed.
 
-Choose a heart, circle, lemniscate, four-leaf clover, Cassini ovals, or trigonometric waves, and change the grid resolution to compare sampling quality. Add custom functions to `curves` in `10 - marching squares/main.js`.
+Choose a heart, circle, lemniscate, four-leaf clover, Cassini ovals, or trigonometric waves, and change the grid resolution to compare sampling quality. Add custom functions to `curves` in `12 - marching squares/main.js`.
 
-The algorithm is isolated in `10 - marching squares/marching-squares.js`:
+The algorithm is isolated in `12 - marching squares/marching-squares.js`:
 
 ```js
 const segments = marchingSquares(
