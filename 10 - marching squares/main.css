@@ -1,0 +1,21 @@
+body {
+    margin: 10px;
+    background-color: white;
+    font-family: sans-serif;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+#glcanvas {
+    display: block;
+    width: min(1024px, 100%);
+    height: auto;
+    aspect-ratio: 4 / 3;
+    background-color: black;
+}

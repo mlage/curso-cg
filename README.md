@@ -21,6 +21,26 @@ Spot is by [Keenan Crane](https://www.cs.cmu.edu/~kmcrane/Projects/ModelReposito
 
 Run the topology and file-loading tests with `node --test tests/half-edge.test.mjs` (Node.js 22 or newer).
 
+## Marching Squares: planar implicit curves
+
+Open `10 - marching squares/main.html` using the same HTTP server and a WebGPU-enabled browser. This independent example keeps the existing `10 - half-edge` folder unchanged and reuses `lib/webgpu.js` and example 03's basic shaders. No half-edges, 3D models, lighting, or depth testing are needed.
+
+Choose a heart, circle, lemniscate, four-leaf clover, Cassini ovals, or trigonometric waves, and change the grid resolution to compare sampling quality. Add custom functions to `curves` in `10 - marching squares/main.js`.
+
+The algorithm is isolated in `10 - marching squares/marching-squares.js`:
+
+```js
+const segments = marchingSquares(
+    (x, y) => (x * x + y * y - 1) ** 3 - x * x * y ** 3,
+    { minX: -2, maxX: 2, minY: -1.5, maxY: 1.5 },
+    128, // Cell count per axis; [columns, rows] also works.
+);
+```
+
+The function extracts the zero contour and returns a `Float32Array` containing independent segments as `[x1, y1, x2, y2, ...]` in domain coordinates. It samples each grid vertex once, interpolates edge crossings linearly, and resolves ambiguous cells using the bilinear asymptotic decider (determinant ties consistently pair bottom/right and top/left). Exact zeros count as nonnegative; zero-length segments are omitted. An identically zero field has no unique curve and returns no segments. Use continuous, finite-valued fields; features smaller than a cell can be missed. Rendering preserves the domain's aspect ratio and redraws only when controls change.
+
+Run all tests with `node --test tests/*.test.mjs` (Node.js 22 or newer).
+
 ## Aulas
 Segundas e Quartas de 11 às 13h.
 

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Marching Squares</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="controls">
+        <label>Implicit curve
+            <select id="curve">
+                <option value="heart">Heart</option>
+                <option value="circle">Circle</option>
+                <option value="lemniscate">Lemniscate</option>
+                <option value="clover">Four-leaf clover</option>
+                <option value="cassini">Cassini ovals</option>
+                <option value="waves">Trigonometric waves</option>
+            </select>
+        </label>
+        <label>Grid resolution
+            <select id="resolution">
+                <option>16</option>
+                <option>32</option>
+                <option>64</option>
+                <option selected>128</option>
+                <option>256</option>
+                <option>512</option>
+            </select>
+        </label>
+        <span id="status" role="status"></span>
+    </div>
+    <canvas id="glcanvas" aria-label="Implicit planar curve rendered with Marching Squares"></canvas>
+    <script src="main.js" type="module"></script>
+</body>
+</html>
