@@ -1,5 +1,62 @@
-// Corners: bottom-left, bottom-right, top-right, top-left.
-// Edges: bottom, right, top, left.
+/*
+ * Marching Squares cases: + means field >= 0, - means field < 0.
+ * The o marks an interpolated edge crossing; lines connect the crossings.
+ * Crossings are drawn at edge midpoints for illustration only.
+ *
+ *      0              1              2              3
+ *    -   -          -   -          -   -          -   -
+ *
+ *                   o                  o          o---o
+ *                    \                /
+ *    -   -          + o -          - o +          +   +
+ *
+ *      4              5*             6              7
+ *    - o +          - o +          - o +          - o +
+ *       \            /               |             /
+ *        o          o   o            |            o
+ *                      /             |
+ *    -   -          + o -          - o +          +   +
+ *
+ *      8              9             10*            11
+ *    + o -          + o -          + o -          + o -
+ *     /               |             /                \
+ *    o                |            o   o              o
+ *                     |               /
+ *    -   -          + o -          - o +          +   +
+ *
+ *     12             13             14             15
+ *    +   +          +   +          +   +          +   +
+ *
+ *    o---o              o          o
+ *                      /            \
+ *    -   -          + o -          - o +          +   +
+ *
+ * Corner bits and edge indices:
+ *
+ *       bit 3            bit 2
+ *         +---- edge 2 ----+
+ *         |               |
+ *       edge 3          edge 1
+ *         |               |
+ *         +---- edge 0 ----+
+ *       bit 0            bit 1
+ *
+ * case = b0 + 2*b1 + 4*b2 + 8*b3
+ *
+ * Cases 5 and 10 are ambiguous. With corner values f0, f1, f2, f3,
+ * the asymptotic decider uses D = f0*f2 - f1*f3:
+ *
+ *       D >= 0            D < 0
+ *
+ *          o                 o
+ *         /                   \
+ *        o   o             o   o
+ *           /               \
+ *          o                 o
+ *
+ * D >= 0 pairs bottom/right and top/left (as shown in the case table).
+ * D < 0 pairs bottom/left and top/right. Ties follow D >= 0.
+ */
 const cases = [
     [], [[3, 0]], [[0, 1]], [[3, 1]],
     [[1, 2]], null, [[0, 2]], [[3, 2]],
