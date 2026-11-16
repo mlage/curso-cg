@@ -4,6 +4,10 @@ import WebGPU from '../lib/webgpu.js';
 import { marchingSquares } from './marching-squares.js';
 
 // Add any continuous implicit field here. The contour is field(x, y) = 0.
+// Two overlapping unit circles. Negative values are inside each circle.
+const circleA = (x, y) => (x + 0.5) ** 2 + y * y - 1;
+const circleB = (x, y) => (x - 0.5) ** 2 + y * y - 1;
+
 const curves = {
     heart: (x, y) => (x * x + y * y - 1) ** 3 - x * x * y ** 3,
     circle: (x, y) => x * x + y * y - 1,
@@ -12,6 +16,10 @@ const curves = {
     cassini: (x, y) => ((x - 0.9) ** 2 + y * y) * ((x + 0.9) ** 2 + y * y) - 0.5,
     waves: (x, y) => Math.sin(3 * x) * Math.cos(3 * y) - 0.2,
 };
+    // Boolean operations preserve the negative-inside convention.
+    union: (x, y) => Math.min(circleA(x, y), circleB(x, y)),
+    intersection: (x, y) => Math.max(circleA(x, y), circleB(x, y)),
+    difference: (x, y) => Math.max(circleA(x, y), -circleB(x, y)),
 
 class Scene {
     constructor(gpu) {

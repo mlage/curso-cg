@@ -105,6 +105,34 @@ test('heart and disconnected curves produce finite contours', () => {
     }
 });
 
+test('Boolean circle combinations extract the outer outline, lens, and crescent', () => {
+    const a = (x, y) => (x + 0.5) ** 2 + y * y - 1;
+    const b = (x, y) => (x - 0.5) ** 2 + y * y - 1;
+    const combinations = [
+        { field: (x, y) => Math.min(a(x, y), b(x, y)), minX: -1.5, maxX: 1.5 },
+        { field: (x, y) => Math.max(a(x, y), b(x, y)), minX: -0.5, maxX: 0.5 },
+        { field: (x, y) => Math.max(a(x, y), -b(x, y)), minX: -1.5, maxX: 0 },
+    ];
+    const cellWidth = 4 / 128;
+    for (const { field, minX, maxX } of combinations) {
+        const points = marchingSquares(field, {}, 128);
+        assert.ok(points.length > 0);
+        assert.ok(points.every(Number.isFinite));
+        const xs = [];
+        for (let i = 0; i < points.length; i += 2) {
+            const x = points[i];
+            const y = points[i + 1];
+            xs.push(x);
+            assert.ok(x >= minX - 1e-6 && x <= maxX + 1e-6);
+            assert.ok(Math.abs(y) <= 1);
+            // Min/max fields have nonsmooth joins, so allow first-order grid error.
+            assert.ok(Math.abs(field(x, y)) < cellWidth);
+        }
+        assert.ok(Math.abs(Math.min(...xs) - minX) < 1e-6);
+        assert.ok(Math.abs(Math.max(...xs) - maxX) < cellWidth);
+    }
+});
+
 test('large finite field values do not overflow interpolation', () => {
     const result = marchingSquares((x) => x === 0 ? -1e308 : 1e308, unit, 1);
     assert.deepEqual(Array.from(result), [0.5, 0, 0.5, 1]);

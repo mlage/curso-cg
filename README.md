@@ -27,6 +27,8 @@ Open `12 - marching squares/main.html` using the same HTTP server and a WebGPU-e
 
 Choose a heart, circle, lemniscate, four-leaf clover, Cassini ovals, or trigonometric waves, and change the grid resolution to compare sampling quality. Add custom functions to `curves` in `12 - marching squares/main.js`.
 
+The selector also includes Boolean combinations of two overlapping unit circles, centered at `(-0.5, 0)` and `(0.5, 0)`. With negative values representing the interior of each shape, union is `Math.min(f, g)`, intersection is `Math.max(f, g)`, and difference (A minus B) is `Math.max(f, -g)`. These produce an outer outline, a lens, and a crescent, respectively. Combine field values rather than JavaScript booleans so edge interpolation still has a continuous scalar field.
+
 The algorithm is isolated in `12 - marching squares/marching-squares.js`:
 
 ```js
