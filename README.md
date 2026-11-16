@@ -19,8 +19,6 @@ Serve the repository over HTTP (for example, `python3 -m http.server 8000`), the
 
 Spot is by [Keenan Crane](https://www.cs.cmu.edu/~kmcrane/Projects/ModelRepository/#spot), available under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). The triangle mesh was obtained from the [common-3d-test-models mirror](https://github.com/alecjacobson/common-3d-test-models/blob/master/data/spot.obj). Geometry is included locally; the examples do not need external downloads at runtime.
 
-Run the topology and file-loading tests with `node --test tests/half-edge.test.mjs` (Node.js 22 or newer).
-
 ## Marching Squares: planar implicit curves
 
 Open `12 - marching squares/main.html` using the same HTTP server and a WebGPU-enabled browser. This independent example keeps the existing `10 - half-edge` folder unchanged and reuses `lib/webgpu.js`, with its own local shaders (`simple.vert.js` and `simple.frag.js`) and no dependencies on other example folders. No half-edges, 3D models, lighting, or depth testing are needed.
@@ -40,8 +38,6 @@ const segments = marchingSquares(
 ```
 
 The function extracts the zero contour and returns a `Float32Array` containing independent segments as `[x1, y1, x2, y2, ...]` in domain coordinates. It samples each grid vertex once, interpolates edge crossings linearly, and resolves ambiguous cells using the bilinear asymptotic decider (determinant ties consistently pair bottom/right and top/left). Exact zeros count as nonnegative; zero-length segments are omitted. An identically zero field has no unique curve and returns no segments. Use continuous, finite-valued fields; features smaller than a cell can be missed. Rendering preserves the domain's aspect ratio and redraws only when controls change.
-
-Run all tests with `node --test tests/*.test.mjs` (Node.js 22 or newer).
 
 ## Aulas
 Segundas e Quartas de 11 às 13h.
