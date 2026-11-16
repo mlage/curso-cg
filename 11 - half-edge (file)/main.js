@@ -122,7 +122,7 @@ class Scene {
 class Main {
     async init() {
         this.gpu = await WebGPU.createCanvas('#glcanvas', 1024, 768);
-        const { coords, indices } = await loadMesh(new URL('./spot.mesh', import.meta.url));
+        const { coords, indices } = await loadMesh(new URL('./dragon.mesh', import.meta.url));
         this.scene = new Scene(this.gpu, coords, indices);
     }
 
