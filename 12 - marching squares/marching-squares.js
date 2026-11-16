@@ -106,8 +106,15 @@ export function marchingSquares(field, bounds = {}, resolution = 128) {
             const index = i * stride + j;
             const values = [samples[index], samples[index + 1],
                 samples[index + stride + 1], samples[index + stride]];
-            // Treat exact zeros consistently as nonnegative.
-            const mask = values.reduce((bits, value, corner) => bits | ((value >= 0 ? 1 : 0) << corner), 0);
+            // Each nonnegative corner contributes its weight to the case number.
+            // Exact zeros count as nonnegative too.
+            const cornerWeights = [1, 2, 4, 8];
+            let mask = 0;
+            for (let corner = 0; corner < 4; corner++) {
+                if (values[corner] >= 0) {
+                    mask += cornerWeights[corner];
+                }
+            }
             let pairs = cases[mask];
             if (pairs === null) {
                 const scale = Math.max(...values.map(Math.abs));
