@@ -1,5 +1,7 @@
 import vertShaderSrc from './simple.vert.js';
 import fragShaderSrc from './simple.frag.js';
+import lineVertShaderSrc from './line.vert.js';
+import lineFragShaderSrc from './line.frag.js';
 import WebGPU from '../lib/webgpu.js';
 
 import { curves } from './curves.js';
@@ -22,14 +24,20 @@ class Scene {
                 attributes: [{ shaderLocation, offset: 0, format: 'float32x4' }],
             })),
         });
+        this.lineProgram = gpu.createProgram(lineVertShaderSrc, lineFragShaderSrc, {
+            topology: 'line-list',
+            depth: false,
+        });
         this.shapes = [];
         this.layers = [];
         this.lineWidth = 3;
+        this.smoothStrokes = true;
     }
 
-    update(gpu, layers, lineWidth = this.lineWidth) {
+    update(gpu, layers, lineWidth = this.lineWidth, smoothStrokes = this.smoothStrokes) {
         this.layers = layers;
         this.lineWidth = lineWidth;
+        this.smoothStrokes = smoothStrokes;
         for (const shape of this.shapes) {
             shape.buffers.forEach((buffer) => buffer.destroy());
         }
@@ -40,7 +48,18 @@ class Scene {
             return;
         }
         for (const { segments, color } of layers) {
-            const { positions, strokes } = createCurveStroke(segments, this.bounds, width, height, lineWidth);
+            let positions = [];
+            let strokes = [];
+            if (smoothStrokes) {
+                ({ positions, strokes } = createCurveStroke(segments, this.bounds, width, height, lineWidth));
+            } else {
+                // The original renderer: pass the segment endpoints directly to WebGPU.
+                const { minX, maxX, minY, maxY } = this.bounds;
+                for (let i = 0; i < segments.length; i += 2) {
+                    positions.push(2 * (segments[i] - minX) / (maxX - minX) - 1,
+                        2 * (segments[i + 1] - minY) / (maxY - minY) - 1, 0, 1);
+                }
+            }
             if (positions.length === 0) {
                 continue;
             }
@@ -48,13 +67,14 @@ class Scene {
             for (let i = 0; i < positions.length; i += 4) {
                 colors.push(...color);
             }
-            this.shapes.push(gpu.createShape([positions, colors, strokes], positions.length / 4));
+            const buffers = smoothStrokes ? [positions, colors, strokes] : [positions, colors];
+            this.shapes.push(gpu.createShape(buffers, positions.length / 4));
         }
     }
 
     draw(gpu) {
         for (const shape of this.shapes) {
-            gpu.draw(this.program, shape);
+            gpu.draw(this.smoothStrokes ? this.program : this.lineProgram, shape);
         }
     }
 }
@@ -69,6 +89,7 @@ class Main {
         const showImplicit = document.querySelector('#show-implicit');
         const showParametric = document.querySelector('#show-parametric');
         const lineWidth = document.querySelector('#line-width');
+        const smoothStrokes = document.querySelector('#smooth-strokes');
 
         // Populate the selector from the definitions so every option has both forms.
         for (const [key, definition] of Object.entries(curves)) {
@@ -84,6 +105,7 @@ class Main {
             const status = [];
             resolution.disabled = !showImplicit.checked;
             segmentCount.disabled = !showParametric.checked;
+            lineWidth.disabled = !smoothStrokes.checked;
 
             if (showImplicit.checked) {
                 const count = Number(resolution.value);
@@ -101,7 +123,7 @@ class Main {
                 }
                 status.push(`Parametric: ${definition.parametric.length} pieces, ${totalSegments} segments`);
             }
-            this.scene.update(this.gpu, layers, Number(lineWidth.value));
+            this.scene.update(this.gpu, layers, Number(lineWidth.value), smoothStrokes.checked);
             document.querySelector('#line-width-value').textContent = `${lineWidth.value} px`;
             document.querySelector('#status').textContent = status.join(' · ') || 'Both versions hidden.';
             this.draw();
@@ -109,6 +131,11 @@ class Main {
         for (const control of [curve, resolution, segmentCount, showImplicit, showParametric]) {
             control.addEventListener('change', update);
         }
+        smoothStrokes.addEventListener('change', () => {
+            lineWidth.disabled = !smoothStrokes.checked;
+            this.scene.update(this.gpu, this.scene.layers, Number(lineWidth.value), smoothStrokes.checked);
+            this.draw();
+        });
         lineWidth.addEventListener('input', () => {
             this.scene.update(this.gpu, this.scene.layers, Number(lineWidth.value));
             document.querySelector('#line-width-value').textContent = `${lineWidth.value} px`;
