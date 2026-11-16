@@ -90,20 +90,20 @@ export function marchingSquares(field, bounds = {}, resolution = 128) {
     const dy = (maxY - minY) / rows;
     const stride = columns + 1;
     const samples = new Float64Array(stride * (rows + 1));
-    for (let j = 0; j <= rows; j++) {
-        for (let i = 0; i <= columns; i++) {
-            const value = field(minX + i * dx, minY + j * dy);
+    for (let i = 0; i <= rows; i++) {
+        for (let j = 0; j <= columns; j++) {
+            const value = field(minX + j * dx, minY + i * dy);
             if (!Number.isFinite(value)) {
                 throw new RangeError('The implicit field must return finite numbers at every grid vertex.');
             }
-            samples[j * stride + i] = value;
+            samples[i * stride + j] = value;
         }
     }
 
     const positions = [];
-    for (let j = 0; j < rows; j++) {
-        for (let i = 0; i < columns; i++) {
-            const index = j * stride + i;
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < columns; j++) {
+            const index = i * stride + j;
             const values = [samples[index], samples[index + 1],
                 samples[index + stride + 1], samples[index + stride]];
             // Treat exact zeros consistently as nonnegative.
@@ -119,8 +119,8 @@ export function marchingSquares(field, bounds = {}, resolution = 128) {
                 continue;
             }
 
-            const x = minX + i * dx;
-            const y = minY + j * dy;
+            const x = minX + j * dx;
+            const y = minY + i * dy;
             const corners = [[x, y], [x + dx, y], [x + dx, y + dy], [x, y + dy]];
             const intersections = edges.map(([a, b]) => {
                 if ((values[a] >= 0) === (values[b] >= 0)) {
