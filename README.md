@@ -23,7 +23,11 @@ Spot is by [Keenan Crane](https://www.cs.cmu.edu/~kmcrane/Projects/ModelReposito
 
 Open `12 - marching squares/main.html` using the same HTTP server and a WebGPU-enabled browser. This independent example keeps the existing `10 - half-edge` folder unchanged and reuses `lib/webgpu.js`, with its own local shaders (`simple.vert.js` and `simple.frag.js`) and no dependencies on other example folders. No half-edges, 3D models, lighting, or depth testing are needed.
 
-Choose a heart, circle, lemniscate, four-leaf clover, Cassini ovals, or trigonometric waves, and change the grid resolution to compare sampling quality. Add custom functions to `curves` in `12 - marching squares/main.js`.
+The responsive explorer groups curve selection, visibility, and sampling controls in a side panel, with a color legend and sampling statistics around the viewport. On smaller screens, the controls move above the canvas. Select a curve, then independently show or hide its **implicit** (pink) and **parametric** (cyan) versions using the two checkboxes. Both start visible; hiding both clears the canvas. The two forms share the same coordinates and renderer. Adjust the implicit grid resolution and parametric segment count independently to compare their approximations. The parametric version is drawn last and may cover the implicit version where they coincide.
+
+All definitions live in `12 - marching squares/curves.js`. Every entry provides a `label`, an `implicit(x, y)` field, and a `parametric` array of pieces, each with `curve(t) = [x, y]`, `minT`, and `maxT`. The selector is generated from this file. Examples include a heart, circle, ellipse, lemniscate, four-leaf clover, Cassini ovals, Lissajous curve, trigonometric waves, and Boolean combinations. Separate parametric pieces avoid connecting disconnected components or unrelated branches.
+
+The heart now uses the matching pair `x = sin(t)`, `y = 0.8*(cos(t) + |sin(t)|^(2/3)) - 0.4` and `x² + ((y + 0.4)/0.8 - |x|^(2/3))² - 1 = 0`, rather than two different heart shapes. The open spiral is omitted because it has no straightforward continuous, sign-changing implicit counterpart for this Marching Squares example.
 
 The selector also includes Boolean combinations of two overlapping unit circles, centered at `(-0.5, 0)` and `(0.5, 0)`. With negative values representing the interior of each shape, union is `Math.min(f, g)`, intersection is `Math.max(f, g)`, and difference (A minus B) is `Math.max(f, -g)`. These produce an outer outline, a lens, and a crescent, respectively. Combine field values rather than JavaScript booleans so edge interpolation still has a continuous scalar field.
 
@@ -31,7 +35,7 @@ The algorithm is isolated in `12 - marching squares/marching-squares.js`:
 
 ```js
 const segments = marchingSquares(
-    (x, y) => (x * x + y * y - 1) ** 3 - x * x * y ** 3,
+    (x, y) => x * x + ((y + 0.4) / 0.8 - Math.abs(x) ** (2 / 3)) ** 2 - 1,
     { minX: -2, maxX: 2, minY: -1.5, maxY: 1.5 },
     128, // Cell count per axis; [columns, rows] also works.
 );
@@ -41,7 +45,7 @@ The function extracts the zero contour and returns a `Float32Array` containing i
 
 ### Parametric sampling
 
-The same page also renders parametric circles, ellipses, spirals, Lissajous curves, and hearts. Choose an example from the **Parametric curves** group; the grid control becomes a segment-count control. Add examples to `parametricCurves` in `12 - marching squares/main.js`, specifying `curve(t) = [x, y]`, `minT`, and `maxT`.
+Each selected curve can display its parametric form alongside its implicit form. The segment count applies to each parametric piece: for example, Cassini ovals have two pieces, so a count of 128 produces 256 segments in total. Boolean boundaries use the appropriate arcs of the original circles. The trigonometric-wave pieces cover the displayed domain; extend their branch ranges if you enlarge the view.
 
 `12 - marching squares/parametric-curve.js` handles sampling separately from rendering:
 
