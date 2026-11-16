@@ -1,5 +1,5 @@
-import vertShaderSrc from '../03 - primeiros passos/simple.vert.js';
-import fragShaderSrc from '../03 - primeiros passos/simple.frag.js';
+import vertShaderSrc from './simple.vert.js';
+import fragShaderSrc from './simple.frag.js';
 import WebGPU from '../lib/webgpu.js';
 import { marchingSquares } from './marching-squares.js';
 
