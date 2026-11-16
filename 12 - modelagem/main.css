@@ -60,6 +60,8 @@ select {
 select:hover:not(:disabled) { border-color: #899ab2; }
 select:disabled { background: #f4f6f9; opacity: 0.55; cursor: not-allowed; }
 select:focus-visible, input:focus-visible { outline: 3px solid #97bfff; outline-offset: 3px; }
+#line-width { width: 100%; margin: 4px 0; accent-color: #4268be; cursor: pointer; }
+#line-width-value { float: right; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .toggle {
     display: flex;

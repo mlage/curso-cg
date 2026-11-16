@@ -3,6 +3,7 @@ import fragShaderSrc from './simple.frag.js';
 import WebGPU from '../lib/webgpu.js';
 
 import { curves } from './curves.js';
+import { createCurveStroke } from './curve-stroke.js';
 import { marchingSquares } from './marching-squares.js';
 import { sampleParametricCurve } from './parametric-curve.js';
 
@@ -10,31 +11,44 @@ class Scene {
     constructor(gpu) {
         this.bounds = { minX: -2, maxX: 2, minY: -1.5, maxY: 1.5 };
         this.program = gpu.createProgram(vertShaderSrc, fragShaderSrc, {
-            topology: 'line-list',
+            topology: 'triangle-list',
             depth: false,
+            blend: {
+                color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+                alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+            },
+            buffers: [0, 1, 2].map((shaderLocation) => ({
+                arrayStride: 4 * 4,
+                attributes: [{ shaderLocation, offset: 0, format: 'float32x4' }],
+            })),
         });
         this.shapes = [];
+        this.layers = [];
+        this.lineWidth = 3;
     }
 
-    update(gpu, layers) {
+    update(gpu, layers, lineWidth = this.lineWidth) {
+        this.layers = layers;
+        this.lineWidth = lineWidth;
         for (const shape of this.shapes) {
             shape.buffers.forEach((buffer) => buffer.destroy());
         }
         this.shapes = [];
 
-        const { minX, maxX, minY, maxY } = this.bounds;
+        const { width, height } = gpu.canvas.getBoundingClientRect();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
         for (const { segments, color } of layers) {
-            if (segments.length === 0) {
+            const { positions, strokes } = createCurveStroke(segments, this.bounds, width, height, lineWidth);
+            if (positions.length === 0) {
                 continue;
             }
-            const positions = [];
             const colors = [];
-            for (let i = 0; i < segments.length; i += 2) {
-                positions.push(2 * (segments[i] - minX) / (maxX - minX) - 1,
-                    2 * (segments[i + 1] - minY) / (maxY - minY) - 1, 0, 1);
+            for (let i = 0; i < positions.length; i += 4) {
                 colors.push(...color);
             }
-            this.shapes.push(gpu.createShape([positions, colors], segments.length / 2));
+            this.shapes.push(gpu.createShape([positions, colors, strokes], positions.length / 4));
         }
     }
 
@@ -54,6 +68,7 @@ class Main {
         const segmentCount = document.querySelector('#segment-count');
         const showImplicit = document.querySelector('#show-implicit');
         const showParametric = document.querySelector('#show-parametric');
+        const lineWidth = document.querySelector('#line-width');
 
         // Populate the selector from the definitions so every option has both forms.
         for (const [key, definition] of Object.entries(curves)) {
@@ -86,14 +101,31 @@ class Main {
                 }
                 status.push(`Parametric: ${definition.parametric.length} pieces, ${totalSegments} segments`);
             }
-            this.scene.update(this.gpu, layers);
+            this.scene.update(this.gpu, layers, Number(lineWidth.value));
+            document.querySelector('#line-width-value').textContent = `${lineWidth.value} px`;
             document.querySelector('#status').textContent = status.join(' · ') || 'Both versions hidden.';
             this.draw();
         };
         for (const control of [curve, resolution, segmentCount, showImplicit, showParametric]) {
             control.addEventListener('change', update);
         }
+        lineWidth.addEventListener('input', () => {
+            this.scene.update(this.gpu, this.scene.layers, Number(lineWidth.value));
+            document.querySelector('#line-width-value').textContent = `${lineWidth.value} px`;
+            this.draw();
+        });
         update();
+
+        // Match the drawing buffer to the displayed size and keep width in CSS pixels.
+        this.resizeObserver = new ResizeObserver(() => {
+            const { width, height } = this.gpu.canvas.getBoundingClientRect();
+            if (width > 0 && height > 0) {
+                this.gpu.resize(Math.max(1, Math.round(width)), Math.max(1, Math.round(height)));
+                this.scene.update(this.gpu, this.scene.layers);
+                this.draw();
+            }
+        });
+        this.resizeObserver.observe(this.gpu.canvas);
     }
 
     draw() {
