@@ -94,28 +94,42 @@ function createPerlinNoise(seed = 0) {
     return { noise, fbm };
 }
 
-export function createMarbleTexture(size = 256, seed = 1234) {
+export function createMarbleTexture(size = 512, seed = 1234) {
     const perlin = createPerlinNoise(seed);
     const data = new Uint8Array(size * size * 4);
 
+    // The noise frequencies below are tuned for a 512x512 tile, and the
+    // feature size stretches the whole pattern so the veins are large enough
+    // to read on the cube faces.
+    const scale = (size / 512) * 1.6;
+
     for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
-            // Turbulence bends the stripes into veins: the sine defines the
-            // stripes and the noise displaces their phase.
-            const turbulence = perlin.fbm(x * 0.012, y * 0.012, 5);
-            const phase = x * 0.16 + y * 0.01 + turbulence * 14.0;
+            const px = x / scale;
+            const py = y / scale;
 
-            // Veins are the dark bands around the zeros of the sine; smoothstep
-            // gives them soft edges instead of a hard threshold.
-            const distance = Math.abs(Math.sin(phase));
-            const vein = 1 - smoothstep(0, 0.3, distance);
-            const cloud = 0.05 * perlin.fbm(x * 0.05, y * 0.05, 3);
-            const value = Math.min(1, Math.max(0, 0.93 - 0.55 * vein + cloud));
+            // Domain warp: offsets the sample point with noise so the veins
+            // swirl instead of repeating as straight stripes.
+            const warpX = px + 140 * perlin.fbm(px * 0.0025, py * 0.0025, 3);
+            const warpY = py + 140 * perlin.fbm(px * 0.0025 + 7.7, py * 0.0025 + 4.4, 3);
+            const turbulence = perlin.fbm(warpX * 0.006, warpY * 0.006, 4, 2, 0.5);
+
+            // Broad grey bands, like the cloudy layers of real marble.
+            const broadPhase = warpX * 0.010 + warpY * 0.006 + turbulence * 4.0;
+            const broad = 1 - smoothstep(0, 0.5, Math.abs(Math.sin(broadPhase)));
+
+            // Thin dark veins, with a width that varies along the slab.
+            const phase = warpX * 0.030 + warpY * 0.020 + turbulence * 9.0;
+            const width = 0.04 + 0.10 * (0.5 + 0.5 * perlin.fbm(warpX * 0.004 + 21, warpY * 0.004 + 9, 3));
+            const vein = 1 - smoothstep(0, width, Math.abs(Math.sin(phase)));
+
+            const cloud = 0.03 * perlin.fbm(warpX * 0.02, warpY * 0.02, 4);
+            const value = Math.min(1, Math.max(0, 0.975 - 0.14 * broad - 0.40 * vein + cloud));
 
             const offset = (y * size + x) * 4;
-            data[offset] = Math.round(255 * Math.min(1, value * 1.02));
+            data[offset] = Math.round(255 * Math.min(1, value * 1.015));
             data[offset + 1] = Math.round(255 * value);
-            data[offset + 2] = Math.round(255 * value * 0.97);
+            data[offset + 2] = Math.round(255 * value * 0.98);
             data[offset + 3] = 255;
         }
     }

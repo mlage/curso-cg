@@ -139,7 +139,7 @@ class Mesh {
             addressModeU: 'clamp-to-edge',
             addressModeV: 'clamp-to-edge',
             magFilter: 'linear',
-            minFilter: 'linear',
+            minFilter: 'linear-mipmap-linear',
         });
         this.bindGroup = gpu.createBindGroup(program, [
             { binding: 0, resource: { buffer: this.uniform.buffer } },
@@ -211,8 +211,10 @@ class Scene {
             ],
         });
 
-        const texture = gpu.createTextureFromData(createMarbleTexture(), {
-            size: [256, 256],
+        const marbleSize = 512;
+        const texture = gpu.createTextureFromData(createMarbleTexture(marbleSize), {
+            size: [marbleSize, marbleSize],
+            mipmaps: true,
         });
 
         this.meshes = [
